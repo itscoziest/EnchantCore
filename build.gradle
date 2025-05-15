@@ -1,0 +1,224 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = 'com.strikesenchantcore'
+version = '1.0.0'
+description = 'EnchantCore Prison Pickaxe Plugin'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+// Configuration for ProGuard tool dependencies - ISOLATED AND NON-TRANSITIVE
+configurations {
+    proguardToolClasspath {
+        description = 'The classpath for ProGuard tool itself. Intentionally non-transitive.'
+        setTransitive(false) // IMPORTANT: Prevent unintended transitive dependencies
+        setCanBeResolved(true)
+        setCanBeConsumed(false)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    maven { url = 'https://maven.enginehub.org/repo/' } // For WorldEdit/WorldGuard
+    maven { url = 'https://jitpack.io' } // For VaultAPI
+    maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' } // For PlaceholderAPI
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' } // For Paper API if you switch
+}
+
+dependencies {
+    // Spigot API
+    compileOnly 'org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT'
+
+    // Vault API
+    compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
+
+    // PlaceholderAPI
+    compileOnly 'me.clip:placeholderapi:2.11.6'
+
+    // WorldGuard and WorldEdit APIs
+    compileOnly 'com.sk89q.worldguard:worldguard-bukkit:7.0.9'
+    compileOnly 'com.sk89q.worldedit:worldedit-bukkit:7.2.14'
+
+    // bStats - this will be shaded into your plugin
+    implementation 'org.bstats:bstats-bukkit:3.0.2'
+
+    // JetBrains Annotations
+    compileOnly 'org.jetbrains:annotations:23.0.0'
+
+    // +++ JACKSON DATABIND (for StrikesLicenseManager) +++
+    // This will be shaded into your plugin and relocated.
+    // Downgraded to 2.15.3 to ensure compatibility with Java 17 bytecode processing by tools.
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3' // MODIFIED HERE
+
+    // === ProGuard Tool Dependencies ===
+    // Add ProGuard Core and Base explicitly to its dedicated, non-transitive tool classpath
+    proguardToolClasspath 'com.guardsquare:proguard-core:9.1.1'
+    proguardToolClasspath 'com.guardsquare:proguard-base:7.4.2'
+    // ProGuard uses Log4j for its own logging, so it needs to be on its classpath
+    proguardToolClasspath 'org.apache.logging.log4j:log4j-api:2.17.1'
+    proguardToolClasspath 'org.apache.logging.log4j:log4j-core:2.17.1'
+
+
+    // === Plugin Compile-Time Dependencies ===
+    // Log4j dependencies (for your plugin's compile/runtime if needed by your code or other direct deps)
+    compileOnly 'org.apache.logging.log4j:log4j-api:2.17.1' // Spigot uses this
+    compileOnly 'org.apache.logging.log4j:log4j-core:2.17.1' // Spigot uses this
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+// Configure Shadow JAR
+shadowJar {
+    relocate 'org.bstats', 'com.strikesenchantcore.lib.bstats'
+    // +++ RELOCATE JACKSON DATABIND +++
+    // This ensures the Jackson library used by StrikesLicenseManager is
+    // moved to a unique package path to avoid conflicts with other plugins.
+    relocate 'com.fasterxml.jackson', 'com.strikesenchantcore.lib.jackson'
+
+    destinationDirectory = file("$buildDir/libs")
+    archiveBaseName = project.name
+    archiveClassifier = ''
+    archiveVersion = project.version
+
+    // Exclude ProGuard and its logging utils from the final plugin JAR
+    // Also exclude Log4j if it's only for ProGuard tool or provided by server
+    dependencies {
+        exclude(dependency('com.guardsquare:proguard-core'))
+        exclude(dependency('com.guardsquare:proguard-base'))
+        // Assuming Spigot provides Log4j, so we don't need to bundle it.
+        // If your plugin *directly* uses a specific version of Log4j and needs to shade it,
+        // you would remove these two lines. But for server plugins, it's usually provided.
+        exclude(dependency('org.apache.logging.log4j:log4j-api'))
+        exclude(dependency('org.apache.logging.log4j:log4j-core'))
+    }
+}
+
+// ProGuard Obfuscation Task
+task obfuscate(dependsOn: shadowJar) {
+    doLast {
+        def inputJar = shadowJar.archiveFile.get().asFile.absolutePath
+        def outputJar = "${buildDir}/libs/${project.name}-${project.version}-obf.jar"
+        def configFile = file('proguard.pro') // Your ProGuard configuration file
+
+        if (!configFile.exists()) {
+            throw new GradleException("ProGuard configuration file 'proguard.pro' not found at ${configFile.absolutePath}!")
+        }
+
+        println "====== RUNNING PROGUARD OBFUSCATION ======"
+        println "Input JAR:  ${inputJar}"
+        println "Output JAR: ${outputJar}"
+        println "Config:     ${configFile.absolutePath}"
+
+        String javaHome = System.getProperty("java.home")
+        List<String> javaRuntimeJarDirectives = new ArrayList<>()
+
+        // Add java.base.jmod
+        String javaBaseJmodPath = "${javaHome}/jmods/java.base.jmod"
+        File javaBaseJmodFile = file(javaBaseJmodPath)
+        if (javaBaseJmodFile.exists()){
+            javaRuntimeJarDirectives.add("-libraryjars \"${javaBaseJmodFile.absolutePath.replace('\\', '/')}\"(!**.module-info)")
+            println "Using Java runtime module: ${javaBaseJmodFile.absolutePath} with filter (!**.module-info)"
+        } else {
+            println "ERROR: Could not locate java.base.jmod at ${javaBaseJmodPath}. ProGuard will likely fail."
+        }
+
+        // Add java.logging.jmod
+        String javaLoggingJmodPath = "${javaHome}/jmods/java.logging.jmod"
+        File javaLoggingJmodFile = file(javaLoggingJmodPath)
+        if (javaLoggingJmodFile.exists()){
+            javaRuntimeJarDirectives.add("-libraryjars \"${javaLoggingJmodFile.absolutePath.replace('\\', '/')}\"(!**.module-info)")
+            println "Using Java runtime module: ${javaLoggingJmodFile.absolutePath} with filter (!**.module-info)"
+        } else {
+            println "WARNING: Could not locate java.logging.jmod at ${javaLoggingJmodPath}. Some logging classes might not be found by ProGuard."
+        }
+
+        // Add other JMODs if necessary based on future warnings (e.g., java.sql.jmod for JDBC)
+        // String javaSqlJmodPath = "${javaHome}/jmods/java.sql.jmod"
+        // File javaSqlJmodFile = file(javaSqlJmodPath)
+        // if (javaSqlJmodFile.exists()){
+        // javaRuntimeJarDirectives.add("-libraryjars \"${javaSqlJmodFile.absolutePath.replace('\\', '/')}\"(!**.module-info)")
+        //    println "Using Java runtime module: ${javaSqlJmodFile.absolutePath} with filter (!**.module-info)"
+        // }
+
+        def tempConfig = file("${buildDir}/temp-proguard.config")
+        // Collect all compile classpath JARs for -libraryjars for ProGuard
+        def libraryJarDirectives = configurations.compileClasspath.files.collect {
+            // Exclude the input JAR itself if it somehow appears in compileClasspath
+            if (!it.absolutePath.equals(inputJar)) {
+                "-libraryjars \"${it.absolutePath.replace('\\', '/')}\""
+            } else {
+                null // or an empty string
+            }
+        }.findAll { it != null }.join("\n") // Filter out nulls before joining
+
+
+        tempConfig.text = """
+            -injars "${inputJar.replace('\\', '/')}"
+            -outjars "${outputJar.replace('\\', '/')}"
+            ${javaRuntimeJarDirectives.join("\n")}
+            ${libraryJarDirectives}
+            -include "${configFile.absolutePath.replace('\\', '/')}"
+            -printconfiguration "${buildDir.absolutePath.replace('\\', '/')}/proguard-effective.config"
+            -dump "${buildDir.absolutePath.replace('\\', '/')}/proguard-dump.txt"
+        """.stripIndent()
+
+        println "Temporary ProGuard config content:\n${tempConfig.text}"
+
+        println "ProGuard Tool Classpath being used by javaexec:"
+        configurations.proguardToolClasspath.files.each { f ->
+            println "  -> ${f.absolutePath}"
+        }
+        if (configurations.proguardToolClasspath.files.empty) {
+            println "  WARNING: ProGuard tool classpath is empty!"
+        }
+
+        javaexec {
+            classpath = configurations.proguardToolClasspath
+            main = 'proguard.ProGuard' // Main class for ProGuard
+            args = ["@${tempConfig.absolutePath}"]
+            maxHeapSize = "1G" // Adjust as needed
+            jvmArgs = [
+                    '-Dfile.encoding=UTF-8',
+                    '-XX:+UseParallelGC' // Example JVM arg for ProGuard process
+            ]
+            standardOutput = new FileOutputStream("${buildDir}/proguard-output.txt")
+            errorOutput = new FileOutputStream("${buildDir}/proguard-error.txt")
+            // ignoreExitValue = false // Default, build will fail on ProGuard error
+        }
+
+        println "ProGuard standard output logged to: ${buildDir}/proguard-output.txt"
+        println "ProGuard error output logged to: ${buildDir}/proguard-error.txt"
+        println "Effective ProGuard configuration logged to: ${buildDir}/proguard-effective.config"
+        println "ProGuard dump (if ProGuard errors out) logged to: ${buildDir}/proguard-dump.txt"
+        println "====== PROGUARD OBFUSCATION ATTEMPTED ======"
+
+        def obfFile = file(outputJar)
+        if (obfFile.exists()) {
+            println "Obfuscated JAR seems to have been created: ${obfFile.absolutePath}"
+        } else {
+            println "WARNING: Obfuscated JAR was NOT created: ${outputJar}"
+            println "This usually indicates a fatal error within ProGuard. Check proguard-error.txt and proguard-output.txt."
+        }
+    }
+}
+
+tasks.build.dependsOn obfuscate
+
+tasks.jar {
+    enabled = false // Disable the default jar task as shadowJar produces the primary artifact
+}
+
+tasks.assemble {
+    dependsOn obfuscate // Ensure obfuscated JAR is part of the main assemble lifecycle
+}

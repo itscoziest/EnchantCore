@@ -1,0 +1,30 @@
+license: YOUR_LICENSE_KEY_HERE
+
+# Main configuration file for EnchantCore
+# VERSION: Final - Includes Currency Type & Messages - May 4, 2025 ## Consider updating version comment
+Settings:
+  # Enable detailed console logs for debugging purposes.
+  Debug: false
+
+  # Choose currency for upgrades: TOKENS or VAULT
+  # TOKENS = Use internal token balance stored in PlayerData
+  # VAULT  = Use economy plugin hooked via Vault
+  CurrencyType: TOKENS # Defaulting to Tokens as requested
+
+# --- Auto Pickup Settings ---
+AutoPickup:
+  # Enable AutoPickup globally? Requires 'enchantcore.autopickup' permission.
+  Enabled: true
+  # Note: InventoryFullMessage is now handled by messages.yml under listeners.autopickup.inventory_full
+
+# --- Auto Sell Settings ---
+AutoSell:
+  Enabled: true
+  # Interval for the summary message in seconds. Set to 0 or negative to disable summaries.
+  Summary-Interval: 60 # Example: 60 seconds
+  # Format for the summary message is now configured in messages.yml under 'autosell.summary'
+
+# Note: PlaceholderAPI and Vault integration are handled automatically if the plugins are present.
+# Note: Specific enchant activation messages are in enchants.yml -> Settings: Message:
+# Note: All other general messages moved to messages.yml
+# Note: PickaxeDefaults (like starting level/blocks) are now primarily controlled by the 'FirstJoinPickaxe' section in pickaxe.yml

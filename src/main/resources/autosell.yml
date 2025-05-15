@@ -1,0 +1,41 @@
+# Configure sell prices for items potentially auto-sold by enchants or /sellall.
+# Format: 'MATERIAL_NAME': price_per_item
+# Use valid Bukkit Material names: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+# NOTE: Since version [Your Current Version], any valid Material can be listed, not just blocks.
+
+# Example Prices (Adjust these to your server's economy!)
+Prices:
+  STONE: 0.5
+  COBBLESTONE: 0.4
+  GRANITE: 0.6
+  DIORITE: 0.6
+  ANDESITE: 0.6
+  DEEPSLATE: 0.7
+  COBBLED_DEEPSLATE: 0.6
+  COAL_ORE: 2.0
+  DEEPSLATE_COAL_ORE: 2.5
+  IRON_ORE: 5.0
+  DEEPSLATE_IRON_ORE: 6.0
+  COPPER_ORE: 3.0
+  DEEPSLATE_COPPER_ORE: 3.5
+  GOLD_ORE: 10.0
+  DEEPSLATE_GOLD_ORE: 12.0
+  REDSTONE_ORE: 4.0
+  DEEPSLATE_REDSTONE_ORE: 4.5
+  EMERALD_ORE: 25.0
+  DEEPSLATE_EMERALD_ORE: 30.0
+  LAPIS_ORE: 8.0
+  DEEPSLATE_LAPIS_ORE: 9.0
+  DIAMOND_ORE: 50.0
+  DEEPSLATE_DIAMOND_ORE: 60.0
+  NETHER_QUARTZ_ORE: 7.0
+  NETHER_GOLD_ORE: 8.0
+  ANCIENT_DEBRIS: 500.0 # Example high price
+  OBSIDIAN: 15.0
+  # Add prices for other blocks or ITEMS relevant to your mines/enchants
+  # Example: RAW_IRON: 3.0
+  # Example: ROTTEN_FLESH: 0.1 # If an enchant collected mob drops
+
+# Optional: Default price if an item isn't listed in 'Prices' above.
+# Set to 0.0 or less to disable selling unlisted items via AutoSell features.
+# DefaultPrice: 0.0

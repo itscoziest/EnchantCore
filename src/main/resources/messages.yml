@@ -1,0 +1,196 @@
+# ========================================= #
+# == EnchantCore Messages Configuration == #
+# ========================================= #
+# Use '&' for legacy color codes and #RRGGBB for hex codes. Use %placeholder% for variables.
+
+# Common messages used in multiple places
+common:
+  no_permission: "&cYou do not have permission to use this command."
+  player_not_found: "&cPlayer not found or not online."
+  must_be_player: "&cThis command must be run by a player."
+  invalid_number: "&cInvalid number specified."
+  data_error_generic: "&cCould not load or save player data for %player%." # %player% placeholder
+
+# /enchantcore command messages
+commands:
+  enchantcore:
+    reload_success: "&aEnchantCore configuration reloaded successfully."
+    usage: # List format for multi-line help/usage
+      - "&cUsage: /enchantcore <subcommand> [args...]"
+      - "&eSubcommands:"
+      - "&f  reload &7- Reloads configuration files."
+      - "&f  give <player> &7- Gives a player a default EnchantCore pickaxe."
+      - "&f  givemax <player> &7- Gives a player a MAXED EnchantCore pickaxe (Admin)."
+      - "&f  setlevel <player> <level> &7- Sets a player's pickaxe level."
+      - "&f  addblocks <player> <amount> &7- Adds blocks mined to a player."
+    give:
+      success: "&aGave an EnchantCore pickaxe to %player%." # %player%
+      target_received: "&aAn Admin gave you an EnchantCore Pickaxe!"
+      error_create_default: "&cError creating the default pickaxe. Check console logs."
+      inventory_full_sender: "&c%player%'s inventory is full. Pickaxe dropped nearby." # %player%
+      inventory_full_target: "&cYour inventory was full, an Admin gave you an item which was dropped nearby!"
+    givemax:
+      success: "&aGave a &cMAXED OUT &aEnchantCore pickaxe to %player%." # %player%
+      target_received: "&aAn Admin gave you a &cMAXED OUT &aEnchantCore Pickaxe!"
+      error_create_base: "&cError creating the base pickaxe for givemax. Check console logs."
+      warn_no_max_level: "&eWarning: No Max-Level set in pickaxe.yml, using %level% for givemax." # %level%
+    setlevel:
+      success: "&aSet %player%'s pickaxe level to %level%." # %player%, %level%
+      success_offline: "&aSet offline player %player%'s pickaxe level data to %level%." # %player%, %level%
+      no_pickaxe: "&c%player% does not have an EnchantCore pickaxe in their inventory." # %player%
+      data_error: "&cCould not load or save player data for %player%." # %player% (Used by command, specific)
+      data_updated_offline: "&a(Player data was updated successfully for offline player)"
+    addblocks:
+      success: "&aAdded %amount% blocks mined to %player%'s pickaxe." # %amount%, %player%
+      success_offline: "&aAdded %amount% blocks mined to offline player %player%'s data." # %amount%, %player%
+      no_pickaxe: "&c%player% does not have an EnchantCore pickaxe in their inventory." # %player%
+      data_error: "&cCould not load or save player data for %player%." # %player% (Used by command, specific)
+      data_updated_offline: "&a(Player data was updated successfully for offline player)"
+
+  # /sellall command messages (Added during review)
+  sellall:
+    no_permission: "&cYou do not have permission to use this command."
+    must_be_player: "&cThis command can only be run by a player."
+    vault_disabled: "&cVault economy is not enabled. Cannot sell items."
+    nothing_to_sell: "&eYou have nothing in your inventory to sell."
+    success: "&aSold inventory items for a total of &e%total_value%&a!" # %total_value%
+    error: "&cAn error occurred while trying to sell items."
+
+  # /ectoggle (alias togglemessages) command messages (Added during review)
+  togglemessages:
+    must_be_player: "&cThis command can only be run by a player."
+    no_permission: "&cYou do not have permission to use this command."
+    data_error: "&cCould not load your data. Please try again."
+    enabled: "&aEnchantment activation messages enabled."
+    disabled: "&cEnchantment activation messages disabled."
+
+  # /togglesounds command messages
+  togglesounds:
+    # Note: uses common.must_be_player by default in code
+    no_permission: "&cYou do not have permission to use this command." # Specific key if needed, else common.no_permission used
+    data_error: "&cCould not load your data. Please try again."
+    enabled: "&aEnchantment activation sounds enabled."
+    disabled: "&cEnchantment activation sounds disabled."
+
+  # /tokens command messages (Added during review)
+  tokens:
+    no_permission: "&cYou do not have permission for this token command."
+    player_only: "&cThis command can only be run by a player."
+    player_not_found: "&cPlayer '%player%' not found." # %player%
+    invalid_amount: "&cInvalid token amount specified."
+    balance_self: "&aYour Token Balance: &e%balance%" # %balance%
+    balance_other: "&a%player%'s Token Balance: &e%balance%" # %player%, %balance%
+    give_success: "&aGave &e%amount% Tokens &ato &f%player%." # %amount%, %player%
+    take_success: "&cTook &e%amount% Tokens &cfrom &f%player%." # %amount%, %player%
+    set_success: "&aSet &f%player%'s &aToken balance to &e%amount%." # %amount%, %player%
+    data_error: "&cCould not load token data for %player%." # %player% (Used by command, specific)
+    take_fail_insufficient: "&cFailed to take tokens: Player only has %balance% Tokens." # %balance%
+    unknown_subcommand: "&cUnknown subcommand. Use /tokens help."
+    usage_balance: "&cUsage: /tokens balance [player]"
+    usage_give: "&cUsage: /tokens give <player> <amount>"
+    usage_take: "&cUsage: /tokens take <player> <amount>"
+    usage_set: "&cUsage: /tokens set <player> <amount>"
+    help: # This is a list
+      - "&m-----------------&r &6EnchantCore Tokens Help &m-----------------"
+      - "&e/tokens &7- Check your token balance."
+      - "&e/tokens balance [player] &7- Check balance (requires permission for others)."
+      - "&e/tokens give <player> <amount> &7- Give tokens to a player (Admin)."
+      - "&e/tokens take <player> <amount> &7- Take tokens from a player (Admin)."
+      - "&e/tokens set <player> <amount> &7- Set a player's token balance (Admin)."
+      - "&e/tokens help &7- Shows this help message."
+      - "&m----------------------------------------------------"
+
+# Pickaxe related messages
+pickaxe:
+  level_up: "&a&lLEVEL UP! &7Your pickaxe reached level &e%level%&7!" # %level%
+  give_inventory_full: "&cYour inventory was full, the starting pickaxe was dropped nearby!"
+  give_received_starting: "&aYou received the starting EnchantCore Pickaxe!"
+
+# GUI messages
+gui:
+  # Note: Title format is now in enchants.yml -> EnchantGUI.Title
+  close_button_name: "&c&lClose Menu"
+  close_button_lore:
+    - "&7Click to exit the enchant menu."
+  not_enough_tokens: "&cNot enough Tokens! Cost: &e%cost% Tokens" # %cost%
+  upgrade_success_tokens: "&aUpgraded %enchant% to level &e%level%&a for &e%cost% Tokens!" # %enchant%, %level%, %cost%
+  upgrade_multiple_success_tokens: "&aUpgraded %enchant% by &e%levels_added% levels&a to &e%level%&a for &e%cost% Tokens!" # %enchant%, %levels_added%, %level%, %cost%
+  not_enough_money: "&cNot enough Money! Cost: &e%cost%" # %cost%
+  upgrade_success_vault: "&aUpgraded %enchant% to level &e%level%&a for &e%cost%!" # %enchant%, %level%, %cost%
+  upgrade_multiple_success_vault: "&aUpgraded %enchant% by &e%levels_added% levels&a to &e%level%&a for &e%cost%!" # %enchant%, %levels_added%, %level%, %cost%
+  max_level_reached: "&cThis enchant is already max level!"
+  pickaxe_level_required: "&cRequires Pickaxe Level %level%!" # %level% (placeholder here means the required level)
+  cost_calc_error: "&cCannot calculate upgrade cost." # Added key for specific error
+  vault_unavailable: "&cVault economy not available."
+  transaction_error: "&cUpgrade failed! Transaction error."
+  no_permission: "&cYou do not have permission to open the enchant menu."
+  data_error: "&cError: Could not load your data to open the menu."
+  open_error: "&cAn error occurred while opening the enchant menu."
+  # Used by EnchantmentWrapper placeholders
+  text_not_applicable: "&7N/A"
+  text_unlimited: "&fUnlimited"
+  text_spacer: " " # Spacer line used in fallback lore
+  text_separator_attributes: "&m----------" # Separator used in fallback lore attributes
+  max_level_generic: "&aMax Level Reached" # Used in fallback lore when maxed
+  max_level_suffix: "&7(Maxed)" # Used in %cost% placeholder when maxed
+  # Fallback lore lines (used if 'lore:' is missing in enchants.yml for an enchant)
+  lore_current_level: "&eLevel: &f%current_level%" # %current_level%
+  lore_max_level: "&eMax: &f%max_level%" # %max_level%
+  lore_price: "&eCost: &f%cost%" # %cost%
+  lore_chance: "&eChance: &f%chance%%" # %chance% (double percent for literal %)
+  lore_radius_blocks: "&eRadius: &f%radius% blocks" # %radius%
+  lore_amount_tokens: "&eAmount: &f%min_amount% - %max_amount% Tokens" # %min_amount%, %max_amount%
+  lore_amount_money: "&eAmount: &f%min_amount% - %max_amount%" # %min_amount%, %max_amount% (Vault format applied by code)
+  lore_effect_duration_multiplier: "&eEffect: &fx%multiplier% &7for &f%duration%s" # %multiplier%, %duration%
+  # Default click prompts (used by EnchantmentWrapper if 'lore:' is missing and requirements met)
+  click_prompts:
+    - "&2&lUsage:"
+    - "&8| &aLeft-Click &f+1 Level"
+    - "&8| &aRight-Click &f+10 Levels"
+    - "&8| &aShift-Right-Click &f+50 Levels"
+  # Balance display in Info Item
+  balance_vault_format: "&eBalance: &f%balance%" # %balance% (Vault formatted value)
+  balance_tokens_format: "&eBalance: &f%balance% Tokens" # %balance% (Comma formatted number)
+  balance_unavailable: "&eBalance: &cUnavailable"
+
+
+# Currency names
+currency:
+  tokens_name_plural: "Tokens"
+
+# Listener messages (Protection, AutoPickup, Nuke interaction)
+listeners:
+  protection:
+    cannot_drop: "&cYou cannot drop this pickaxe!"
+    cannot_store: "&cYou cannot store this pickaxe here!"
+    cannot_place: "&cYou cannot place this pickaxe in this type of window."
+  autopickup:
+    inventory_full: "&cInventory full! Dropped %item%!" # %item%
+  nuke:
+    interact_denied: "&cYou cannot use pickaxe abilities while Nuke is active!"
+    mine_denied: "&cYou cannot mine while Nuke is active!" # Added for block break attempt
+    # wait: "&c&lNuke Activated! Mining is paused until complete..." # Old message, replaced by title
+    complete: "&aNuke complete!"
+    complete_no_blocks: "&aNuke complete (no blocks affected)."
+    complete_aborted: "&cNuke aborted." # Added for cancelled nukes
+    # Title settings used by BlockBreakListener/Nuke handler
+    restricted_title: "&4&lNUKE ACTIVE"
+    restricted_subtitle: "&cMining is restricted!"
+    title_fadein: 10  # Ticks (20 ticks = 1 second)
+    title_fadeout: 20 # Ticks
+
+# AutoSell Summary Message (used by BlockBreakListener)
+autosell:
+  summary:
+    header: "&7&m-------------[ &a&lAutoSell Summary&7 ]&m-------------"
+    # Body is a list, placeholders: %autosell_interval%, %autosell_total_items%, %autosell_raw_items%, %autosell_earnings%, %autosell_multiplier%
+    body:
+      - "&f Mined in last &e%autosell_interval%&fs:"
+      - "  &fItems Sold: &e%autosell_total_items%"
+      #- "  &fDirectly Mined & Sold: &e%autosell_raw_items%" # Optional detail
+      - "  &fTotal Earnings: &a%autosell_earnings%" # Uses Vault formatting for value display
+      - "  &fCurrent Multiplier: &b%autosell_multiplier%"
+    footer: "&7&m----------------------------------------------"
+
+# Note: Specific enchant activation messages (like Blessing, Explosive, Charity messages)
+# should be configured within their 'Settings:' section in enchants.yml

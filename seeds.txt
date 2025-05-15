@@ -1,0 +1,219 @@
+com.strikesenchantcore.EnchantCore
+com.strikesenchantcore.EnchantCore: EnchantCore()
+com.strikesenchantcore.EnchantCore: void onLoad()
+com.strikesenchantcore.EnchantCore: void onEnable()
+com.strikesenchantcore.EnchantCore: void onDisable()
+com.strikesenchantcore.EnchantCore: com.strikesenchantcore.EnchantCore getInstance()
+com.strikesenchantcore.EnchantCore: com.strikesenchantcore.config.ConfigManager getConfigManager()
+com.strikesenchantcore.EnchantCore: com.strikesenchantcore.config.EnchantManager getEnchantManager()
+com.strikesenchantcore.EnchantCore: com.strikesenchantcore.config.PickaxeConfig getPickaxeConfig()
+com.strikesenchantcore.EnchantCore: com.strikesenchantcore.data.PlayerDataManager getPlayerDataManager()
+com.strikesenchantcore.EnchantCore: com.strikesenchantcore.pickaxe.PickaxeManager getPickaxeManager()
+com.strikesenchantcore.EnchantCore: com.strikesenchantcore.enchants.EnchantRegistry getEnchantRegistry()
+com.strikesenchantcore.EnchantCore: com.strikesenchantcore.util.VaultHook getVaultHook()
+com.strikesenchantcore.EnchantCore: com.strikesenchantcore.util.PapiHook getPapiHook()
+com.strikesenchantcore.EnchantCore: com.strikesenchantcore.util.WorldGuardHook getWorldGuardHook()
+com.strikesenchantcore.EnchantCore: com.strikesenchantcore.config.AutoSellConfig getAutoSellConfig()
+com.strikesenchantcore.EnchantCore: com.strikesenchantcore.config.MessageManager getMessageManager()
+com.strikesenchantcore.commands.EnchantCoreCommand
+com.strikesenchantcore.commands.EnchantCoreCommand: EnchantCoreCommand(com.strikesenchantcore.EnchantCore)
+com.strikesenchantcore.commands.EnchantCoreCommand: boolean onCommand(org.bukkit.command.CommandSender,org.bukkit.command.Command,java.lang.String,java.lang.String[])
+com.strikesenchantcore.commands.EnchantCoreTabCompleter
+com.strikesenchantcore.commands.EnchantCoreTabCompleter: EnchantCoreTabCompleter(com.strikesenchantcore.EnchantCore)
+com.strikesenchantcore.commands.EnchantCoreTabCompleter: java.util.List onTabComplete(org.bukkit.command.CommandSender,org.bukkit.command.Command,java.lang.String,java.lang.String[])
+com.strikesenchantcore.commands.SellAllCommand
+com.strikesenchantcore.commands.SellAllCommand: SellAllCommand(com.strikesenchantcore.EnchantCore)
+com.strikesenchantcore.commands.SellAllCommand: boolean onCommand(org.bukkit.command.CommandSender,org.bukkit.command.Command,java.lang.String,java.lang.String[])
+com.strikesenchantcore.commands.ToggleMessagesCommand
+com.strikesenchantcore.commands.ToggleMessagesCommand: ToggleMessagesCommand(com.strikesenchantcore.EnchantCore)
+com.strikesenchantcore.commands.ToggleMessagesCommand: boolean onCommand(org.bukkit.command.CommandSender,org.bukkit.command.Command,java.lang.String,java.lang.String[])
+com.strikesenchantcore.commands.ToggleSoundsCommand
+com.strikesenchantcore.commands.ToggleSoundsCommand: ToggleSoundsCommand(com.strikesenchantcore.EnchantCore)
+com.strikesenchantcore.commands.ToggleSoundsCommand: boolean onCommand(org.bukkit.command.CommandSender,org.bukkit.command.Command,java.lang.String,java.lang.String[])
+com.strikesenchantcore.commands.TokensCommand
+com.strikesenchantcore.commands.TokensCommand: TokensCommand(com.strikesenchantcore.EnchantCore)
+com.strikesenchantcore.commands.TokensCommand: boolean onCommand(org.bukkit.command.CommandSender,org.bukkit.command.Command,java.lang.String,java.lang.String[])
+com.strikesenchantcore.commands.TokensCommand: java.util.List onTabComplete(org.bukkit.command.CommandSender,org.bukkit.command.Command,java.lang.String,java.lang.String[])
+com.strikesenchantcore.config.ConfigManager$CurrencyType: com.strikesenchantcore.config.ConfigManager$CurrencyType[] values()
+com.strikesenchantcore.config.ConfigManager$CurrencyType: com.strikesenchantcore.config.ConfigManager$CurrencyType valueOf(java.lang.String)
+com.strikesenchantcore.enchants.EnchantmentWrapper$EnchantType: com.strikesenchantcore.enchants.EnchantmentWrapper$EnchantType[] values()
+com.strikesenchantcore.enchants.EnchantmentWrapper$EnchantType: com.strikesenchantcore.enchants.EnchantmentWrapper$EnchantType valueOf(java.lang.String)
+com.strikesenchantcore.gui.EnchantGUIListener
+com.strikesenchantcore.gui.EnchantGUIListener: EnchantGUIListener(com.strikesenchantcore.EnchantCore)
+com.strikesenchantcore.gui.EnchantGUIListener: void onInventoryClick(org.bukkit.event.inventory.InventoryClickEvent)
+com.strikesenchantcore.gui.EnchantGUIListener: void onInventoryClose(org.bukkit.event.inventory.InventoryCloseEvent)
+com.strikesenchantcore.lib.bstats.MetricsBase
+com.strikesenchantcore.lib.bstats.MetricsBase: java.lang.String METRICS_VERSION
+com.strikesenchantcore.lib.bstats.MetricsBase: java.lang.String REPORT_URL
+com.strikesenchantcore.lib.bstats.MetricsBase: java.util.concurrent.ScheduledExecutorService scheduler
+com.strikesenchantcore.lib.bstats.MetricsBase: java.lang.String platform
+com.strikesenchantcore.lib.bstats.MetricsBase: java.lang.String serverUuid
+com.strikesenchantcore.lib.bstats.MetricsBase: int serviceId
+com.strikesenchantcore.lib.bstats.MetricsBase: java.util.function.Consumer appendPlatformDataConsumer
+com.strikesenchantcore.lib.bstats.MetricsBase: java.util.function.Consumer appendServiceDataConsumer
+com.strikesenchantcore.lib.bstats.MetricsBase: java.util.function.Consumer submitTaskConsumer
+com.strikesenchantcore.lib.bstats.MetricsBase: java.util.function.Supplier checkServiceEnabledSupplier
+com.strikesenchantcore.lib.bstats.MetricsBase: java.util.function.BiConsumer errorLogger
+com.strikesenchantcore.lib.bstats.MetricsBase: java.util.function.Consumer infoLogger
+com.strikesenchantcore.lib.bstats.MetricsBase: boolean logErrors
+com.strikesenchantcore.lib.bstats.MetricsBase: boolean logSentData
+com.strikesenchantcore.lib.bstats.MetricsBase: boolean logResponseStatusText
+com.strikesenchantcore.lib.bstats.MetricsBase: java.util.Set customCharts
+com.strikesenchantcore.lib.bstats.MetricsBase: boolean enabled
+com.strikesenchantcore.lib.bstats.MetricsBase: MetricsBase(java.lang.String,java.lang.String,int,boolean,java.util.function.Consumer,java.util.function.Consumer,java.util.function.Consumer,java.util.function.Supplier,java.util.function.BiConsumer,java.util.function.Consumer,boolean,boolean,boolean)
+com.strikesenchantcore.lib.bstats.MetricsBase: void addCustomChart(com.strikesenchantcore.lib.bstats.charts.CustomChart)
+com.strikesenchantcore.lib.bstats.MetricsBase: void shutdown()
+com.strikesenchantcore.lib.bstats.MetricsBase: void startSubmitting()
+com.strikesenchantcore.lib.bstats.MetricsBase: void submitData()
+com.strikesenchantcore.lib.bstats.MetricsBase: void sendData(com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject)
+com.strikesenchantcore.lib.bstats.MetricsBase: void checkRelocation()
+com.strikesenchantcore.lib.bstats.MetricsBase: byte[] compress(java.lang.String)
+com.strikesenchantcore.lib.bstats.MetricsBase: void lambda$submitData$4(com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject)
+com.strikesenchantcore.lib.bstats.MetricsBase: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject[] lambda$submitData$3(int)
+com.strikesenchantcore.lib.bstats.MetricsBase: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject lambda$submitData$2(com.strikesenchantcore.lib.bstats.charts.CustomChart)
+com.strikesenchantcore.lib.bstats.MetricsBase: void lambda$startSubmitting$1()
+com.strikesenchantcore.lib.bstats.MetricsBase: java.lang.Thread lambda$new$0(java.lang.Runnable)
+com.strikesenchantcore.lib.bstats.bukkit.Metrics
+com.strikesenchantcore.lib.bstats.bukkit.Metrics: org.bukkit.plugin.Plugin plugin
+com.strikesenchantcore.lib.bstats.bukkit.Metrics: com.strikesenchantcore.lib.bstats.MetricsBase metricsBase
+com.strikesenchantcore.lib.bstats.bukkit.Metrics: Metrics(org.bukkit.plugin.java.JavaPlugin,int)
+com.strikesenchantcore.lib.bstats.bukkit.Metrics: void shutdown()
+com.strikesenchantcore.lib.bstats.bukkit.Metrics: void addCustomChart(com.strikesenchantcore.lib.bstats.charts.CustomChart)
+com.strikesenchantcore.lib.bstats.bukkit.Metrics: void appendPlatformData(com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder)
+com.strikesenchantcore.lib.bstats.bukkit.Metrics: void appendServiceData(com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder)
+com.strikesenchantcore.lib.bstats.bukkit.Metrics: int getPlayerAmount()
+com.strikesenchantcore.lib.bstats.bukkit.Metrics: void lambda$new$2(java.lang.String)
+com.strikesenchantcore.lib.bstats.bukkit.Metrics: void lambda$new$1(java.lang.String,java.lang.Throwable)
+com.strikesenchantcore.lib.bstats.bukkit.Metrics: void lambda$new$0(org.bukkit.plugin.java.JavaPlugin,java.lang.Runnable)
+com.strikesenchantcore.lib.bstats.charts.AdvancedBarChart
+com.strikesenchantcore.lib.bstats.charts.AdvancedBarChart: java.util.concurrent.Callable callable
+com.strikesenchantcore.lib.bstats.charts.AdvancedBarChart: AdvancedBarChart(java.lang.String,java.util.concurrent.Callable)
+com.strikesenchantcore.lib.bstats.charts.AdvancedBarChart: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject getChartData()
+com.strikesenchantcore.lib.bstats.charts.AdvancedPie
+com.strikesenchantcore.lib.bstats.charts.AdvancedPie: java.util.concurrent.Callable callable
+com.strikesenchantcore.lib.bstats.charts.AdvancedPie: AdvancedPie(java.lang.String,java.util.concurrent.Callable)
+com.strikesenchantcore.lib.bstats.charts.AdvancedPie: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject getChartData()
+com.strikesenchantcore.lib.bstats.charts.CustomChart
+com.strikesenchantcore.lib.bstats.charts.CustomChart: java.lang.String chartId
+com.strikesenchantcore.lib.bstats.charts.CustomChart: CustomChart(java.lang.String)
+com.strikesenchantcore.lib.bstats.charts.CustomChart: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject getRequestJsonObject(java.util.function.BiConsumer,boolean)
+com.strikesenchantcore.lib.bstats.charts.CustomChart: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject getChartData()
+com.strikesenchantcore.lib.bstats.charts.DrilldownPie
+com.strikesenchantcore.lib.bstats.charts.DrilldownPie: java.util.concurrent.Callable callable
+com.strikesenchantcore.lib.bstats.charts.DrilldownPie: DrilldownPie(java.lang.String,java.util.concurrent.Callable)
+com.strikesenchantcore.lib.bstats.charts.DrilldownPie: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject getChartData()
+com.strikesenchantcore.lib.bstats.charts.MultiLineChart
+com.strikesenchantcore.lib.bstats.charts.MultiLineChart: java.util.concurrent.Callable callable
+com.strikesenchantcore.lib.bstats.charts.MultiLineChart: MultiLineChart(java.lang.String,java.util.concurrent.Callable)
+com.strikesenchantcore.lib.bstats.charts.MultiLineChart: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject getChartData()
+com.strikesenchantcore.lib.bstats.charts.SimpleBarChart
+com.strikesenchantcore.lib.bstats.charts.SimpleBarChart: java.util.concurrent.Callable callable
+com.strikesenchantcore.lib.bstats.charts.SimpleBarChart: SimpleBarChart(java.lang.String,java.util.concurrent.Callable)
+com.strikesenchantcore.lib.bstats.charts.SimpleBarChart: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject getChartData()
+com.strikesenchantcore.lib.bstats.charts.SimplePie
+com.strikesenchantcore.lib.bstats.charts.SimplePie: java.util.concurrent.Callable callable
+com.strikesenchantcore.lib.bstats.charts.SimplePie: SimplePie(java.lang.String,java.util.concurrent.Callable)
+com.strikesenchantcore.lib.bstats.charts.SimplePie: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject getChartData()
+com.strikesenchantcore.lib.bstats.charts.SingleLineChart
+com.strikesenchantcore.lib.bstats.charts.SingleLineChart: java.util.concurrent.Callable callable
+com.strikesenchantcore.lib.bstats.charts.SingleLineChart: SingleLineChart(java.lang.String,java.util.concurrent.Callable)
+com.strikesenchantcore.lib.bstats.charts.SingleLineChart: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject getChartData()
+com.strikesenchantcore.lib.bstats.config.MetricsConfig
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: java.io.File file
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: boolean defaultEnabled
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: java.lang.String serverUUID
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: boolean enabled
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: boolean logErrors
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: boolean logSentData
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: boolean logResponseStatusText
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: boolean didExistBefore
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: MetricsConfig(java.io.File,boolean)
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: java.lang.String getServerUUID()
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: boolean isEnabled()
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: boolean isLogErrorsEnabled()
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: boolean isLogSentDataEnabled()
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: boolean isLogResponseStatusTextEnabled()
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: boolean didExistBefore()
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: void setupConfig()
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: void writeConfig()
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: void readConfig()
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: java.util.Optional getConfigValue(java.lang.String,java.util.List)
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: java.util.List readFile(java.io.File)
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: void writeFile(java.io.File,java.util.List)
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: java.lang.String lambda$getConfigValue$1(java.lang.String,java.lang.String)
+com.strikesenchantcore.lib.bstats.config.MetricsConfig: boolean lambda$getConfigValue$0(java.lang.String,java.lang.String)
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder: java.lang.StringBuilder builder
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder: boolean hasAtLeastOneField
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder: JsonObjectBuilder()
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder appendNull(java.lang.String)
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder appendField(java.lang.String,java.lang.String)
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder appendField(java.lang.String,int)
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder appendField(java.lang.String,com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject)
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder appendField(java.lang.String,java.lang.String[])
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder appendField(java.lang.String,int[])
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder appendField(java.lang.String,com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject[])
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder: void appendFieldUnescaped(java.lang.String,java.lang.String)
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder: com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject build()
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder: java.lang.String escape(java.lang.String)
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder: java.lang.String lambda$appendField$0(java.lang.String)
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$1
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject: java.lang.String value
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject: JsonObjectBuilder$JsonObject(java.lang.String)
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject: java.lang.String toString()
+com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$JsonObject: JsonObjectBuilder$JsonObject(java.lang.String,com.strikesenchantcore.lib.bstats.json.JsonObjectBuilder$1)
+com.strikesenchantcore.listeners.BlockBreakListener
+com.strikesenchantcore.listeners.BlockBreakListener: BlockBreakListener(com.strikesenchantcore.EnchantCore,com.strikesenchantcore.util.WorldGuardHook,com.strikesenchantcore.config.AutoSellConfig)
+com.strikesenchantcore.listeners.BlockBreakListener: void onPlayerQuit(org.bukkit.event.player.PlayerQuitEvent)
+com.strikesenchantcore.listeners.BlockBreakListener: void onBlockBreak(org.bukkit.event.block.BlockBreakEvent)
+com.strikesenchantcore.listeners.BlockBreakListener: void onNukeTntPrime(org.bukkit.event.entity.ExplosionPrimeEvent)
+com.strikesenchantcore.listeners.BlockBreakListener$AreaBlockBreakTask
+com.strikesenchantcore.listeners.BlockBreakListener$AreaBlockBreakTask: BlockBreakListener$AreaBlockBreakTask(com.strikesenchantcore.listeners.BlockBreakListener,org.bukkit.entity.Player,org.bukkit.inventory.ItemStack,java.util.List,boolean,org.bukkit.Location,java.lang.String,com.strikesenchantcore.data.PlayerData,boolean)
+com.strikesenchantcore.listeners.BlockBreakListener$AreaBlockBreakTask: void run()
+com.strikesenchantcore.listeners.BlockBreakListener$ProcessResult: com.strikesenchantcore.listeners.BlockBreakListener$ProcessResult[] values()
+com.strikesenchantcore.listeners.BlockBreakListener$ProcessResult: com.strikesenchantcore.listeners.BlockBreakListener$ProcessResult valueOf(java.lang.String)
+com.strikesenchantcore.listeners.PlayerInteractListener
+com.strikesenchantcore.listeners.PlayerInteractListener: PlayerInteractListener(com.strikesenchantcore.EnchantCore)
+com.strikesenchantcore.listeners.PlayerInteractListener: void onPlayerInteract(org.bukkit.event.player.PlayerInteractEvent)
+com.strikesenchantcore.listeners.PlayerJoinListener
+com.strikesenchantcore.listeners.PlayerJoinListener: PlayerJoinListener(com.strikesenchantcore.EnchantCore)
+com.strikesenchantcore.listeners.PlayerJoinListener: void onPlayerJoin(org.bukkit.event.player.PlayerJoinEvent)
+com.strikesenchantcore.listeners.PlayerQuitListener
+com.strikesenchantcore.listeners.PlayerQuitListener: PlayerQuitListener(com.strikesenchantcore.EnchantCore)
+com.strikesenchantcore.listeners.PlayerQuitListener: void onPlayerQuit(org.bukkit.event.player.PlayerQuitEvent)
+com.strikesenchantcore.listeners.ProtectionListeners
+com.strikesenchantcore.listeners.ProtectionListeners: ProtectionListeners(com.strikesenchantcore.EnchantCore)
+com.strikesenchantcore.listeners.ProtectionListeners: void onPlayerDeath(org.bukkit.event.entity.PlayerDeathEvent)
+com.strikesenchantcore.listeners.ProtectionListeners: void onItemDrop(org.bukkit.event.player.PlayerDropItemEvent)
+com.strikesenchantcore.listeners.ProtectionListeners: void onInventoryClick(org.bukkit.event.inventory.InventoryClickEvent)
+com.strikesenchantcore.listeners.ProtectionListeners: void onInventoryDrag(org.bukkit.event.inventory.InventoryDragEvent)
+com.strikesenchantcore.tasks.PassiveEffectTask
+com.strikesenchantcore.tasks.PassiveEffectTask: PassiveEffectTask(com.strikesenchantcore.EnchantCore)
+com.strikesenchantcore.tasks.PassiveEffectTask: void run()
+com.strikesenchantcore.util.PapiHook
+com.strikesenchantcore.util.PapiHook: com.strikesenchantcore.EnchantCore plugin
+com.strikesenchantcore.util.PapiHook: java.util.logging.Logger logger
+com.strikesenchantcore.util.PapiHook: boolean isHooked
+com.strikesenchantcore.util.PapiHook: java.text.DecimalFormat PERCENT_FORMAT
+com.strikesenchantcore.util.PapiHook: java.text.DecimalFormat BOOSTER_MULTIPLIER_FORMAT
+com.strikesenchantcore.util.PapiHook: java.text.NumberFormat COMMA_SEPARATOR_FORMAT
+com.strikesenchantcore.util.PapiHook: long K
+com.strikesenchantcore.util.PapiHook: long M
+com.strikesenchantcore.util.PapiHook: long B
+com.strikesenchantcore.util.PapiHook: long T
+com.strikesenchantcore.util.PapiHook: PapiHook(com.strikesenchantcore.EnchantCore)
+com.strikesenchantcore.util.PapiHook: boolean setupPlaceholderAPI()
+com.strikesenchantcore.util.PapiHook: boolean registerPlaceholders()
+com.strikesenchantcore.util.PapiHook: boolean isHooked()
+com.strikesenchantcore.util.PapiHook: java.lang.String setPlaceholders(org.bukkit.OfflinePlayer,java.lang.String)
+com.strikesenchantcore.util.PapiHook: java.lang.String getIdentifier()
+com.strikesenchantcore.util.PapiHook: java.lang.String getAuthor()
+com.strikesenchantcore.util.PapiHook: java.lang.String getVersion()
+com.strikesenchantcore.util.PapiHook: boolean persist()
+com.strikesenchantcore.util.PapiHook: boolean canRegister()
+com.strikesenchantcore.util.PapiHook: java.lang.String onRequest(org.bukkit.OfflinePlayer,java.lang.String)
+com.strikesenchantcore.util.PapiHook: java.lang.String formatNumberFixed(long)
+com.strikesenchantcore.util.PapiHook: java.lang.String formatWithSuffix(long,long,java.lang.String)
+com.strikesenchantcore.util.PapiHook: java.lang.String formatTime(int)
+com.strikesenchantcore.util.PapiHook: void <clinit>()

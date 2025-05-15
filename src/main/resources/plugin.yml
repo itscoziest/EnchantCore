@@ -1,0 +1,78 @@
+name: EnchantCore
+version: '1.0.0-SNAPSHOT'
+main: com.strikesenchantcore.EnchantCore
+api-version: '1.13'
+authors: [StrikesDev, ItsCoziest]
+description: Core plugin for custom enchantments and pickaxe leveling.
+softdepend: [Vault, PlaceholderAPI, WorldGuard]
+
+commands:
+  enchantcore:
+    description: Main command for EnchantCore features.
+    usage: /enchantcore <subcommand> [args...]
+    aliases: [ec, ecore]
+    permission: enchantcore.admin # Consider separate perms if needed
+  sellall:
+    description: Sells all valid items in your inventory.
+    usage: /sellall
+    permission: enchantcore.sellall
+  ectoggle:
+    description: Toggles enchantment activation messages.
+    usage: /ectoggle
+    aliases: [ectm, togglemessages]
+    permission: enchantcore.togglemessages.use
+  togglesounds: # Added during review
+    description: Toggles enchantment activation sounds.
+    usage: /togglesounds
+    aliases: [ects, togglesound] # Optional alias suggestion
+    permission: enchantcore.togglesounds.use
+  tokens:
+    description: Manage and check Token balances.
+    usage: /tokens <subcommand> [args...]
+    aliases: [token, tk]
+    permission: enchantcore.tokens.balance # Base permission to check own balance
+
+permissions:
+  enchantcore.admin:
+    description: Allows usage of all admin commands for EnchantCore (/ec ...).
+    default: op
+  enchantcore.gui.open:
+    description: Allows opening the EnchantCore GUI.
+    default: true
+  enchantcore.sellall:
+    description: Allows usage of the /sellall command.
+    default: true
+  enchantcore.autosell:
+    description: Allows AutoSell functionality if enabled.
+    default: true
+  enchantcore.autopickup:
+    description: Allows AutoPickup functionality if enabled.
+    default: true
+  enchantcore.togglemessages.use:
+    description: Allows usage of the /ectoggle command.
+    default: true
+  enchantcore.togglesounds.use: # Added during review
+    description: Allows usage of the /togglesounds command.
+    default: true
+  enchantcore.tokens.balance:
+    description: Allows checking own token balance (/tokens).
+    default: true
+  enchantcore.tokens.balance.others:
+    description: Allows checking other players' token balance (/tokens balance <player>).
+    default: op
+  enchantcore.tokens.modify.*:
+    description: Allows modifying token balances (give/take/set).
+    default: op
+    children:
+      enchantcore.tokens.modify.give: true
+      enchantcore.tokens.modify.take: true
+      enchantcore.tokens.modify.set: true
+  enchantcore.tokens.modify.give:
+    description: Allows giving tokens (/tokens give ...).
+    default: op
+  enchantcore.tokens.modify.take:
+    description: Allows taking tokens (/tokens take ...).
+    default: op
+  enchantcore.tokens.modify.set:
+    description: Allows setting token balance (/tokens set ...).
+    default: op
