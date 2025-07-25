@@ -1,120 +1,83 @@
-# Configuration for the EnchantCore pickaxe appearance, behavior, and leveling.
+# Configuration for EnchantCore Pickaxe appearance, behavior, and leveling system.
 
 Pickaxe:
-  # Display name format. Uses placeholders handled by the plugin.
-  # Placeholders: %enchantcore_level%, %enchantcore_blocks_mined%, %enchantcore_blocks_required%, %player% (if available)
+  # Display name of the pickaxe with dynamic placeholders.
+  # Available placeholders: %enchantcore_level%, %enchantcore_blocks_mined%, %enchantcore_blocks_required%, %player%
   Name: "&b%player%'s Pickaxe &7(Level %enchantcore_level%)"
 
-  # Material of the pickaxe item. Use valid Bukkit Material names.
-  # Example: DIAMOND_PICKAXE, NETHERITE_PICKAXE, IRON_PICKAXE
+  # Material type (must be a valid Bukkit Material)
   Material: DIAMOND_PICKAXE
 
-  # Optional: Custom Model Data for resource packs. Set to 0 to disable.
+  # Custom model data for resource pack models (0 to disable)
   CustomModelData: 0
 
-  # Base lore format (BEFORE enchantments are listed). Placeholders are replaced by the plugin.
-  # Available Placeholders: %enchantcore_level%, %enchantcore_blocks_mined%, %enchantcore_blocks_required%, %enchantcore_progress_bar%
-  # Color codes (& or #) are processed.
+  # Lore displayed on the pickaxe before enchantments
   Lore:
     - '&8&m------------------------'
     - '&eBlocks Mined: &f%enchantcore_blocks_mined%/%enchantcore_blocks_required%'
     - '&ePickaxe Level: &f%enchantcore_level% &7[%enchantcore_progress_bar%&7]'
     - '&8&m------------------------'
-    - '&7Enchantments:' # Marker line where enchants will be added below
+    - '&7Enchantments:'
 
-  # --- Behavior Settings ---
-  # Should the pickaxe be kept in inventory upon death?
-  Keep-Inventory: true
-  # Prevent players from dropping the pickaxe (e.g., pressing Q)?
-  Prevent-Drop: true
-  # Prevent players from storing the pickaxe in chests, anvils, etc.?
-  Prevent-Store: true
-  # If Prevent-Store is true, allow moving the pickaxe *within* the player's own inventory?
-  Allow-Inventory-Move: true
+  # --- Behavioral Settings ---
+  Keep-Inventory: true          # Keep pickaxe on death
+  Prevent-Drop: true            # Prevent dropping with Q
+  Prevent-Store: true           # Prevent storing in containers
+  Allow-Inventory-Move: true    # Allow moving inside player's inventory
 
-  # --- Leveling Settings ---
+  # --- Leveling Configuration ---
   Leveling:
-    # Formula type for calculating blocks required per level. Options: LINEAR, EXPONENTIAL
-    Formula-Type: "EXPONENTIAL"
-    # Base blocks required to go from Level 1 to Level 2 (for EXPONENTIAL)
-    # OR the flat amount required for EACH level (for LINEAR). Must be >= 1.
-    Base-Blocks-Required: 100
-    # For EXPONENTIAL: Factor to multiply cost by each level (e.g., 1.5 = 50% increase). Should be > 1.0.
-    # For LINEAR: Flat amount to add to the cost each level (e.g., 100 = L1->100, L2->200, L3->300). Can be 0.
-    Multiplier: 1.5
-    # Maximum level the pickaxe can reach. Set to 0 or negative for no limit.
-    Max-Level: 1000
+    Formula-Type: "EXPONENTIAL"   # LINEAR or EXPONENTIAL
+    Base-Blocks-Required: 100     # Blocks required for Level 2 (base)
+    Multiplier: 1.5               # EXPONENTIAL multiplier per level
+    Max-Level: 1000               # Set 0 or below for no cap
 
     # --- Level Up Rewards ---
-    # Configure rewards given when the pickaxe levels up.
-    # Placeholders available in messages/commands: %player%, %level% (the level just reached)
     rewards:
-      # Rewards given for EVERY level up.
       every-level:
-        enable: false # Set to true to enable these rewards
-        message: "&aLeveled Up! &fYou reached level %level%!" # Message sent to player (optional, colored)
-        commands: # List of commands run by console (optional)
-          - "eco give %player% 100" # Example: Give 100 Vault money
-          # - "msg %player% You gained a level!" # Example message command
-
-      # Rewards given at specific interval milestones (e.g., every 10 levels).
-      milestone:
-        enable: false # Set to true to enable these rewards
-        interval: 10 # Give reward at level 10, 20, 30... (Must be > 0)
-        message: "&b&lMilestone! &fYou reached level %level%! Here's a key!" # (Optional, colored)
+        enable: false
+        message: "&aLeveled Up! &fYou reached level %level%!"
         commands:
-          - "crate key give %player% Rare 1" # Example: Give a rare crate key
+          - "eco give %player% 100"
 
-      # Rewards given only at EXACTLY specified levels.
+      milestone:
+        enable: false
+        interval: 10
+        message: "&b&lMilestone! &fYou reached level %level%! Here's a key!"
+        commands:
+          - "crate key give %player% Rare 1"
+
       specific-levels:
-        enable: false # Set to true to enable these rewards
-        # Default message if a specific level below doesn't define its own message. (Optional, colored)
+        enable: false
         default-message: "&d&lSpecial Level! &fYou reached the unique level %level%!"
-        levels: # Map of Level -> Reward Data
-          # --- Examples (Customize or remove these!) ---
-          '50': # Level 50 reward (use quotes around the level number)
-            message: "&6Congrats on reaching Level 50, %player%!" # Optional override message for this specific level
+        levels:
+          '50':
+            message: "&6Congrats on reaching Level 50, %player%!"
             commands:
-              # - "lp user %player% permission set some.cool.perk.level50" # Example permission grant
-              - "eco give %player% 10000" # Example money reward
-          '100': # Level 100 reward
-            # Uses default-message above if 'message:' is removed here
+              - "eco give %player% 10000"
+          '100':
             commands:
-              - "broadcast &e%player% reached Pickaxe Level 100!" # Example broadcast
-              - "crate key give %player% Legendary 1" # Example legendary key
+              - "broadcast &e%player% reached Pickaxe Level 100!"
+              - "crate key give %player% Legendary 1"
 
-
-# Format for individual enchantment lines added dynamically to the pickaxe lore.
+# Lore format for each enchantment
 # Placeholders: %enchant_name%, %enchant_level%, %enchant_max_level%
-# Color codes are processed here during load.
 Enchant-Lore-Format: "&7- %enchant_name% &f%enchant_level%/%enchant_max_level%"
 
-# Progress bar appearance in the pickaxe lore (%enchantcore_progress_bar%).
+# Progress bar appearance
 ProgressBar:
   Symbol-Filled: "|"
-  Symbol-Empty: "|" # Using same symbol for empty for solid bar effect
-  Color-Filled: "&a" # Raw color code stored
-  Color-Empty: "&7" # Raw color code stored
-  Length: 20 # Number of symbols in the bar
+  Symbol-Empty: "|"
+  Color-Filled: "&a"
+  Color-Empty: "&7"
+  Length: 20
 
-# --- First Join Pickaxe Configuration ---
+# --- First Join Starter Pickaxe ---
 FirstJoinPickaxe:
-  # Give a default pickaxe to players the very first time they join the server?
   Enabled: true
-  # If Enabled is true, should we check if the player somehow already has one before giving?
-  # If false, player might get multiple if they lose their first one (unless other logic prevents it).
   CheckExisting: true
-  # --- Optional Overrides (Leave blank or remove key to use Pickaxe defaults above) ---
-  # Name: "&e%player%'s First Pickaxe" # Example override using player name placeholder
-  # Material: STONE_PICKAXE          # Example override
-  # --- Required Settings ---
-  Level: 1                          # Starting level (must be >= 1)
-  BlocksMined: 0                    # Starting blocks mined count (must be >= 0)
-  # --- Starting Enchantments ---
-  # List of enchantments to apply, format: "enchant_raw_name level"
-  # Ensure 'enchant_raw_name' matches a RawName in enchants.yml
-  # Example: ["efficiency 5", "unbreaking 3", "tokenator 1"]
+  Level: 1
+  BlocksMined: 0
   Enchants:
     - "efficiency 10"
     - "fortune 5"
-    # Add more default enchants here if desired

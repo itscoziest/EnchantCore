@@ -51,7 +51,7 @@ public final class EnchantCore extends JavaPlugin {
     private WorldGuardHook worldGuardHook;
     private BukkitTask passiveEffectTask;
     private BlockBreakListener blockBreakListener;
-    private static final int BSTATS_PLUGIN_ID = 22479;
+    private static final int BSTATS_PLUGIN_ID = 25927;
 
     // +++ License Configuration (using local StrikesLicenseManager) +++
     // Obfuscated LICENSE_API_USER_ID "a1f66"

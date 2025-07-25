@@ -1,8 +1,4 @@
-# EnchantCore enchants.yml
-# - Each enchant uses a "lore:" (lowercase L) list to define its full GUI item lore.
-# - Placeholders like %cost%, %level%, %max_level%, %chance%, %radius%, %description%, %description_multiline%, %pickaxe_level% are available.
-# - If a placeholder is not applicable (e.g., %chance% for an enchant without it), it becomes "N/A" (from messages.yml).
-# - Lines in "lore:" that become empty or just "N/A" after replacements should ideally be skipped by the Java code.
+# Enchant GUI settings
 EnchantGUI:
   Title: "#3B3B98&lPickaxe Enchantments"
   Size: 54
@@ -10,44 +6,30 @@ EnchantGUI:
   FillerMaterial: BLACK_STAINED_GLASS_PANE
   FillerName: " "
   FillerCustomModelData: 0
-  # Optional: Define static items (like borders, info buttons) under 'Items:'
+  # You can optionally add static GUI items (like borders or buttons) here.
   # Items:
   #   border:
   #     Material: LIME_STAINED_GLASS_PANE
   #     Name: "&a "
-  #     Slots: [0, 1, 2, 3, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53] # Example slots
+  #     Slots: [0, 1, 2, 3, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53]
 
-# Section containing definitions for all enchantments
+# All enchantments are listed here
 enchants:
-  # --- Example: Efficiency ---
+
+  # --- Efficiency ---
   efficiency:
-    # Internal unique ID, lowercase, no spaces. Used for commands/PDC. Crucial.
-    RawName: "efficiency"
-    # Name shown in chat, messages, potentially lore placeholders. Use color codes (& or #).
+    RawName: "efficiency"  # Unique ID used internally
     Name: "#a1e8a1&lEfficiency"
-    # Name shown in the GUI item title (often same as Name). Appends level automatically.
     GuiName: "#a1e8a1&lEfficiency"
-    # Bukkit Material for the GUI item.
     Material: BEACON
-    # Is this enchantment enabled and usable? If false, it won't load or appear.
     Enabled: true
-    # Slot number in the GUI (0 is top-left). -1 if not shown.
     InGuiSlot: 19
-    # Maximum level this enchant can reach (must be >= 1). 0 or negative means no limit (handled by Java).
     MaxLevel: 100
-    # Cost (Tokens or Vault) to upgrade from Level 0 to Level 1.
     Cost: 100.0
-    # How the cost increases each level. Depends on CostFormula.
     IncreaseCostBy: 1.12
-    # How cost scales: LINEAR (Cost + IncreaseCostBy * (Lvl-1)) or EXPONENTIAL (Cost * (IncreaseCostBy ^ (Lvl-1))).
     CostFormula: "EXPONENTIAL"
-    # Minimum Pickaxe Level required to purchase/upgrade this enchant. 0 for no requirement.
     PickaxeLevelRequired: 0
-    # If this wraps a vanilla enchant, specify its key (e.g., "minecraft:efficiency"). Handles vanilla behavior automatically.
     MinecraftEnchantKey: "minecraft:efficiency"
-    # Custom lore for the GUI item. Overrides default fallback lore.
-    # Uses placeholders like %cost%, %level%, %max_level%, %chance%, %radius%, %pickaxe_level_required%, etc.
-    # Preserving user's custom lore design as requested.
     lore:
       - "&7Gives your pickaxe an ability to break blocks faster"
       - " "
@@ -57,7 +39,7 @@ enchants:
       - "&8| &bCurrent Level: &f%current_level%"
       - " "
 
-  # --- Example: Fortune ---
+  # --- Fortune ---
   fortune:
     RawName: "fortune"
     Name: "#fdd835&lFortune"
@@ -81,9 +63,9 @@ enchants:
       - "&8| &bCurrent Level: &f%current_level%"
       - " "
 
-  # --- Example: Haste (Passive) ---
+  # --- Haste ---
   haste:
-    RawName: "haste" # Used by PassiveEffectTask
+    RawName: "haste"
     Name: "#FFFACD&lHaste"
     GuiName: "#FFFACD&lHaste"
     Material: FEATHER
@@ -104,9 +86,9 @@ enchants:
       - "&8| &bCurrent Level: &f%current_level%"
       - " "
 
-  # --- Example: Speed (Passive) ---
+  # --- Speed ---
   speed:
-    RawName: "speed" # Used by PassiveEffectTask
+    RawName: "speed"
     Name: "#ADD8E6&lSpeed"
     GuiName: "#ADD8E6&lSpeed"
     Material: SUGAR
@@ -127,7 +109,7 @@ enchants:
       - "&8| &bCurrent Level: &f%current_level%"
       - " "
 
-  # --- Example: Blessing (Active) ---
+  # --- Blessing ---
   blessing:
     RawName: "blessing"
     Name: "#87CEEB&lBlessing"
@@ -141,22 +123,17 @@ enchants:
     CostFormula: "EXPONENTIAL"
     PickaxeLevelRequired: 5
     Settings:
-      ChanceBase: 0.005 # 0.5% base chance
-      ChanceIncreasePerLevel: 0.002 # +0.2% chance per level
-      RewardMinBase: 5 # Tokens
+      ChanceBase: 0.005
+      ChanceIncreasePerLevel: 0.002
+      RewardMinBase: 5
       RewardMinIncreasePerLevel: 1
       RewardMaxBase: 20
       RewardMaxIncreasePerLevel: 5
-      # Message sent to activator
       MessageGave: "&b&lBLESSED! &fYou shared %amount% Tokens with %count% players!"
-      # Message sent to recipients
       MessageReceived: "&b&lBLESSED! &fYou received %amount% Tokens from %player%!"
-      # Optional commands run by console on activation
-      # Commands:
-      #  - "say %player% activated Blessing!"
     lore:
       - " "
-      - "&7Chance to give all online players tokens" # Use 'tokens' if CurrencyType is Tokens
+      - "&7Chance to give all online players tokens"
       - " "
       - "&3&lInfo:"
       - "&8| &bPrice: &f%cost%"
@@ -169,7 +146,7 @@ enchants:
       - "&8| &eChance: &f%chance%%"
       - " "
 
-  # --- Example: Explosive (Active) ---
+  # --- Explosive ---
   explosive:
     RawName: "explosive"
     Name: "#FF6347&lExplosive"
@@ -183,12 +160,10 @@ enchants:
     CostFormula: "EXPONENTIAL"
     PickaxeLevelRequired: 10
     Settings:
-      ChanceBase: 0.008 # 0.8% base chance
-      ChanceIncreasePerLevel: 0.004 # +0.4% chance per level
-      # RadiusTier maps to explosion radius: 1=2, 2=3, 3=4, 4=5, 5=6 blocks
-      RadiusTier: 2 # Defaulting to 3x3x3 explosion (Radius 2)
-      # BreakBedrock: false # Optional: Set to true to allow breaking bedrock (use with extreme caution!)
-      Message: "&6&lBOOM! &fExplosive activated!" # Message sent on activation
+      ChanceBase: 0.008
+      ChanceIncreasePerLevel: 0.004
+      RadiusTier: 2
+      Message: "&6&lBOOM! &fExplosive activated!"
     lore:
       - " "
       - "&7Chance to explode nearby blocks"
@@ -198,273 +173,4 @@ enchants:
       - "&8| &bMax Level: &f%max_level%"
       - "&8| &bCurrent Level: &f%current_level%"
       - "&8| &bChance: &f%chance%%"
-      - " "
-
-  # --- Example: Disc (Active) ---
-  disc:
-    RawName: "disc"
-    Name: "#B0B0B0&lDisc"
-    GuiName: "#B0B0B0&lDisc"
-    Material: MUSIC_DISC_13 # Example material
-    Enabled: true
-    InGuiSlot: 25
-    MaxLevel: 10
-    Cost: 5000.0
-    IncreaseCostBy: 1.4
-    CostFormula: "EXPONENTIAL"
-    PickaxeLevelRequired: 50
-    Settings:
-      ChanceBase: 0.005 # 0.5% base chance
-      ChanceIncreasePerLevel: 0.001 # +0.1% chance per level
-      Message: "&b&lWoosh! &3Disc cleared layer %layer%!" # %layer% placeholder added in handler
-      # BreakBedrock: false # Optional setting
-    lore:
-      - " "
-      - "&7Chance to clear the whole layer of the mining area" # Requires WorldGuard region with flag
-      - " "
-      - "&3&lInfo:"
-      - "&8| &bPrice: &f%cost%"
-      - "&8| &bMax Level: &f%max_level%"
-      - "&8| &bCurrent Level: &f%current_level%"
-      - "&8| &bChance: &f%chance%%"
-      - " "
-
-  # --- Example: Block Booster (Active) ---
-  blockbooster:
-    RawName: "blockbooster"
-    Name: "#DDA0DD&lBlock Booster"
-    GuiName: "#DDA0DD&lBlock Booster"
-    Material: EXPERIENCE_BOTTLE
-    Enabled: true
-    InGuiSlot: 28
-    MaxLevel: 10
-    Cost: 1500.0
-    IncreaseCostBy: 1.3
-    CostFormula: "EXPONENTIAL"
-    PickaxeLevelRequired: 30
-    Settings:
-      ChanceBase: 0.005 # 0.5% base chance
-      ChanceIncreasePerLevel: 0.002 # +0.2% chance per level
-      DurationBase: 45 # Seconds
-      DurationIncreasePerLevel: 5 # Seconds per level
-      MultiplierBase: 1.1 # Starting multiplier (e.g., 1.1 = 10% boost)
-      MultiplierIncreasePerLevel: 0.1 # Amount multiplier increases per level
-      Message: "&d&lBooster! &fx%multiplier% Blocks Mined for %duration%s" # %multiplier%, %duration%
-    lore:
-      - " "
-      - "&7Ability to multiply the mined blocks for limited time"
-      - " "
-      - "&3&lInfo:"
-      - "&8| &bPrice: &f%cost%"
-      - "&8| &bMax Level: &f%max_level%"
-      - "&8| &bCurrent Level: &f%current_level%"
-      - " "
-      - "&6&lAttributes:"
-      - "&8| &eEffect: &fx%multiplier% &7for &f%duration%s"
-      - "&8| &eChance: &f%chance%%"
-      - " "
-
-  # --- Example: Nuke (Active) ---
-  nuke:
-    RawName: "nuke"
-    Name: "#8B0000&lNUKE"
-    GuiName: "#8B0000&lNUKE"
-    Material: TNT_MINECART
-    Enabled: true
-    InGuiSlot: 29
-    MaxLevel: 5
-    Cost: 500000.0 # High cost example
-    IncreaseCostBy: 2.0 # High cost increase example
-    CostFormula: "EXPONENTIAL"
-    PickaxeLevelRequired: 200 # High level requirement example
-    Settings:
-      ChanceBase: 0.0005 # 0.05% base chance (very rare)
-      ChanceIncreasePerLevel: 0.0005 # +0.05% chance per level
-      Radius: 20 # Explosion radius (blocks)
-      BreakBedrock: false # Default false
-      CountdownSeconds: 3 # Seconds before detonation
-      CountdownBossBarEnabled: true # Show BossBar during countdown?
-      BossBarTitle: "&c&lNuke Detonating in: &e%countdown%s" # BossBar text (%countdown%)
-      BossBarColor: "RED" # Options: BLUE, GREEN, PINK, PURPLE, RED, WHITE, YELLOW
-      ParticleEffectEnabled: true # Show particles during countdown?
-      # Message: "&4&lNUKE ACTIVATED!" # Activation message (Optional - Title is now primary indicator)
-    lore:
-      - " "
-      - "&7Chance to break all blocks in the entire mining area" # Requires WorldGuard flag
-      - " "
-      - "&3&lInfo:"
-      - "&8| &bPrice: &f%cost%"
-      - "&8| &bMax Level: &f%max_level%"
-      - "&8| &bCurrent Level: &f%current_level%"
-      - "&8| &bChance: &f%chance%%"
-      - " "
-
-  # --- Example: Charity (Active - Vault) ---
-  charity:
-    RawName: "charity"
-    Name: "#FFC0CB&lCharity"
-    GuiName: "#FFC0CB&lCharity"
-    Material: GOLD_INGOT
-    Enabled: true
-    InGuiSlot: 30
-    MaxLevel: 10
-    Cost: 4000.0
-    IncreaseCostBy: 1.3
-    CostFormula: "EXPONENTIAL"
-    PickaxeLevelRequired: 40
-    Settings:
-      ChanceBase: 0.005 # 0.5% base chance
-      ChanceIncreasePerLevel: 0.002 # +0.2% chance per level
-      RewardMinBase: 25.0 # Vault money
-      RewardMinIncreasePerLevel: 5.0
-      RewardMaxBase: 75.0
-      RewardMaxIncreasePerLevel: 15.0
-      MessageGave: "&dCharity! &fShared %amount% with %count% players!" # %amount% (Vault formatted), %count%
-      MessageReceived: "&dCharity! &fReceived %amount% from %player%!" # %amount% (Vault formatted), %player%
-    lore:
-      - " "
-      - "&7Chance to give money to all online players" # Uses Vault if CurrencyType=VAULT
-      - " "
-      - "&3&lInfo:"
-      - "&8| &bPrice: &f%cost%"
-      - "&8| &bMax Level: &f%max_level%"
-      - "&8| &bCurrent Level: &f%current_level%"
-      - " "
-      - "&6&lAttributes:"
-      - "&8| &eMinimum Amount: &f%min_amount%" # Placeholders handle formatting
-      - "&8| &eMaximum Amount: &f%max_amount%"
-      - "&8| &eChance: &f%chance%%"
-      - " "
-
-  # --- Example: Salary (Active - Vault) ---
-  salary:
-    RawName: "salary"
-    Name: "#90EE90&lSalary"
-    GuiName: "#90EE90&lSalary"
-    Material: EMERALD
-    Enabled: true
-    InGuiSlot: 31
-    MaxLevel: 25
-    Cost: 1200.0
-    IncreaseCostBy: 1.18
-    CostFormula: "EXPONENTIAL"
-    PickaxeLevelRequired: 15
-    Settings:
-      ChanceBase: 0.01 # 1% base chance
-      ChanceIncreasePerLevel: 0.003 # +0.3% chance per level
-      RewardMinBase: 30.0 # Vault money
-      RewardMinIncreasePerLevel: 2.5
-      RewardMaxBase: 80.0
-      RewardMaxIncreasePerLevel: 7.5
-      Message: "&a&lSALARY! &fReceived +%amount%!" # %amount% (Vault formatted)
-    lore:
-      - " "
-      - "&7Chance to receive extra money while mining" # Uses Vault if CurrencyType=VAULT
-      - " "
-      - "&3&lInfo:"
-      - "&8| &bPrice: &f%cost%"
-      - "&8| &bMax Level: &f%max_level%"
-      - "&8| &bCurrent Level: &f%current_level%"
-      - " "
-      - "&6&lAttributes:"
-      - "&8| &eMinimum Amount: &f%min_amount%"
-      - "&8| &eMaximum Amount: &f%max_amount%"
-      - "&8| &eChance: &f%chance%%"
-      - " "
-
-  # --- Example: Key Finder (Active - Command) ---
-  keyfinder:
-    RawName: "keyfinder"
-    Name: "#FFD700&lKey Finder"
-    GuiName: "#FFD700&lKey Finder"
-    Material: TRIPWIRE_HOOK
-    Enabled: true
-    InGuiSlot: 32
-    MaxLevel: 10
-    Cost: 10000.0
-    IncreaseCostBy: 1.4
-    CostFormula: "EXPONENTIAL"
-    PickaxeLevelRequired: 50
-    Settings:
-      ChanceBase: 0.001 # 0.1% base chance
-      ChanceIncreasePerLevel: 0.0005 # +0.05% chance per level
-      Commands: # List of commands run by CONSOLE
-        - "crates key give %player% Vote 1" # %player% placeholder available
-        # - "another command for %player%"
-      Message: "&e&lKEYS! &fYou found a crate key while mining! &cCHANGE THIS IN ENCHANTS.YML" # Message sent to player
-    lore:
-      - " "
-      - "&7Chance to find Crate Keys while mining"
-      - " "
-      - "&3&lInfo:"
-      - "&8| &bPrice: &f%cost%"
-      - "&8| &bMax Level: &f%max_level%"
-      - "&8| &bCurrent Level: &f%current_level%"
-      - "&8| &bChance: &f%chance%%"
-      - " "
-
-  # --- Example: Voucher Finder (Active - Command) ---
-  voucherfinder:
-    RawName: "voucherfinder"
-    Name: "#AFEEEE&lVoucher Finder"
-    GuiName: "#AFEEEE&lVoucher Finder"
-    Material: PAPER
-    Enabled: true
-    InGuiSlot: 33
-    MaxLevel: 5
-    Cost: 25000.0
-    IncreaseCostBy: 1.5
-    CostFormula: "EXPONENTIAL"
-    PickaxeLevelRequired: 75
-    Settings:
-      ChanceBase: 0.0005 # 0.05% base chance
-      ChanceIncreasePerLevel: 0.0002 # +0.02% chance per level
-      Commands:
-        - "voucher give %player% ExampleRankUpgrade 1" # Example command
-      Message: "&a&lVOUCHER! &fYou found a special voucher! &cCHANGE THIS IN ENCHANTS.YML"
-    lore:
-      - " "
-      - "&7Chance to find Vouchers while mining"
-      - " "
-      - "&3&lInfo:"
-      - "&8| &bPrice: &f%cost%"
-      - "&8| &bMax Level: &f%max_level%"
-      - "&8| &bCurrent Level: &f%current_level%"
-      - "&8| &bChance: &f%chance%%"
-      - " "
-
-  # --- Example: Tokenator (Active - Tokens) ---
-  tokenator:
-    RawName: "tokenator"
-    Name: "#BA55D3&lTokenator"
-    GuiName: "#BA55D3&lTokenator"
-    Material: NETHER_STAR
-    Enabled: true
-    InGuiSlot: 34
-    MaxLevel: 30
-    Cost: 2500.0
-    IncreaseCostBy: 1.22
-    CostFormula: "EXPONENTIAL"
-    PickaxeLevelRequired: 35
-    Settings:
-      ChanceBase: 0.006 # 0.6% base chance
-      ChanceIncreasePerLevel: 0.0025 # +0.25% chance per level
-      RewardMinBase: 5 # Tokens (long)
-      RewardMinIncreasePerLevel: 2
-      RewardMaxBase: 15
-      RewardMaxIncreasePerLevel: 6
-      Message: "&d&lTOKENS! &fYour pickaxe found %amount% Tokens!" # %amount% (formatted number)
-    lore:
-      - " "
-      - "&7Chance to receive extra tokens while mining" # Uses internal tokens if CurrencyType=TOKENS
-      - " "
-      - "&3&lInfo:"
-      - "&8| &bPrice: &f%cost%"
-      - "&8| &bMax Level: &f%max_level%"
-      - "&8| &bCurrent Level: &f%current_level%"
-      - " "
-      - "&6&lAttributes:"
-      - "&8| &eMinimum Amount: &f%min_amount% Tokens"
-      - "&8| &eMaximum Amount: &f%max_amount% Tokens"
-      - "&8| &eChance: &f%chance%%"
       - " "

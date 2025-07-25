@@ -108,7 +108,7 @@ shadowJar {
 task obfuscate(dependsOn: shadowJar) {
     doLast {
         def inputJar = shadowJar.archiveFile.get().asFile.absolutePath
-        def outputJar = "${buildDir}/libs/${project.name}-${project.version}-obf.jar"
+        def outputJar = "${buildDir}/libs/${project.name}-Premium-${project.version}.jar"
         def configFile = file('proguard.pro') // Your ProGuard configuration file
 
         if (!configFile.exists()) {

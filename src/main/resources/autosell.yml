@@ -35,7 +35,3 @@ Prices:
   # Add prices for other blocks or ITEMS relevant to your mines/enchants
   # Example: RAW_IRON: 3.0
   # Example: ROTTEN_FLESH: 0.1 # If an enchant collected mob drops
-
-# Optional: Default price if an item isn't listed in 'Prices' above.
-# Set to 0.0 or less to disable selling unlisted items via AutoSell features.
-# DefaultPrice: 0.0
