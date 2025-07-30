@@ -4,14 +4,14 @@ main: com.strikesenchantcore.EnchantCore
 api-version: '1.13'
 authors: [StrikesDev, ItsCoziest]
 description: Core plugin for custom enchantments and pickaxe leveling.
-softdepend: [Vault, PlaceholderAPI, WorldGuard]
+softdepend: [Vault, PlaceholderAPI, WorldGuard, ItemsAdder]
 
 commands:
   enchantcore:
     description: Main command for EnchantCore features.
     usage: /enchantcore <subcommand> [args...]
     aliases: [ec, ecore]
-    permission: enchantcore.admin # Consider separate perms if needed
+    permission: enchantcore.admin
   sellall:
     description: Sells all valid items in your inventory.
     usage: /sellall
@@ -21,16 +21,21 @@ commands:
     usage: /ectoggle
     aliases: [ectm, togglemessages]
     permission: enchantcore.togglemessages.use
-  togglesounds: # Added during review
+  togglesounds:
     description: Toggles enchantment activation sounds.
     usage: /togglesounds
-    aliases: [ects, togglesound] # Optional alias suggestion
+    aliases: [ects, togglesound]
     permission: enchantcore.togglesounds.use
+  toggleanimations: # ADDED
+    description: Toggles enchantment animations.
+    usage: /toggleanimations
+    aliases: [ecta, toggleanim]
+    permission: enchantcore.toggleanimations.use
   tokens:
     description: Manage and check Token balances.
     usage: /tokens <subcommand> [args...]
     aliases: [token, tk]
-    permission: enchantcore.tokens.balance # Base permission to check own balance
+    permission: enchantcore.tokens.balance
 
 permissions:
   enchantcore.admin:
@@ -51,8 +56,11 @@ permissions:
   enchantcore.togglemessages.use:
     description: Allows usage of the /ectoggle command.
     default: true
-  enchantcore.togglesounds.use: # Added during review
+  enchantcore.togglesounds.use:
     description: Allows usage of the /togglesounds command.
+    default: true
+  enchantcore.toggleanimations.use: # ADDED
+    description: Allows usage of the /toggleanimations command.
     default: true
   enchantcore.tokens.balance:
     description: Allows checking own token balance (/tokens).

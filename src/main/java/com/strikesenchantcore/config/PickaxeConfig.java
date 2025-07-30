@@ -16,6 +16,7 @@ import java.util.*; // Import necessary java.util classes
 import java.util.logging.Level;
 import java.util.logging.Logger; // Import Logger
 import java.util.stream.Collectors;
+import com.strikesenchantcore.util.ItemsAdderUtil;
 
 /**
  * Manages loading and accessing settings from pickaxe.yml, including
@@ -24,13 +25,14 @@ import java.util.stream.Collectors;
 public class PickaxeConfig {
 
     private final EnchantCore plugin;
-    private final Logger logger; // Cache logger
+    private final Logger logger; // Cache logger // ItemsAdder integration utility
     private File pickaxeFile;
     private FileConfiguration pickaxeConfig;
 
     // --- Cached General Pickaxe Settings ---
     private String pickaxeNameFormat = "&bEnchantCore Pickaxe &7(Level %enchantcore_level%)";
     private Material pickaxeMaterial = Material.DIAMOND_PICKAXE;
+    private String pickaxeItemsAdderID = null;
     private int customModelData = 0;
     private List<String> pickaxeLoreFormat = List.of(); // Default set in load() if missing
     private boolean keepInventory = true;
@@ -60,6 +62,7 @@ public class PickaxeConfig {
     private boolean firstJoinCheckExisting = true;
     private String firstJoinName = ""; // Empty means use default pickaxe name
     @Nullable private Material firstJoinMaterial = null; // Null means use default pickaxe material
+    @Nullable private String firstJoinItemsAdderID = null;
     private int firstJoinLevel = 1;
     private long firstJoinBlocksMined = 0;
     private List<String> firstJoinEnchants = Collections.emptyList(); // Use Collections.emptyList for default
@@ -149,6 +152,11 @@ public class PickaxeConfig {
             } catch (IllegalArgumentException e) {
                 logger.warning("Invalid Material specified in Pickaxe.Material: " + pickaxeSection.getString("Material") + ". Using DIAMOND_PICKAXE.");
                 pickaxeMaterial = Material.DIAMOND_PICKAXE; // Fallback
+            }
+// Load ItemsAdder ID if specified
+            pickaxeItemsAdderID = pickaxeSection.getString("ItemsAdder-ID", null);
+            if (pickaxeItemsAdderID != null && pickaxeItemsAdderID.trim().isEmpty()) {
+                pickaxeItemsAdderID = null; // Treat empty string as null
             }
             customModelData = pickaxeSection.getInt("CustomModelData", 0);
             List<String> rawLore = pickaxeSection.getStringList("Lore");
@@ -304,7 +312,13 @@ public class PickaxeConfig {
                     firstJoinMaterial = null; // Use default if invalid
                 }
             } else { firstJoinMaterial = null; } // Use default if empty string
-            firstJoinLevel = Math.max(1, firstJoinSection.getInt("Level", 1)); // Ensure at least level 1
+
+// Load FirstJoin ItemsAdder ID if specified
+            firstJoinItemsAdderID = firstJoinSection.getString("ItemsAdder-ID", null);
+            if (firstJoinItemsAdderID != null && firstJoinItemsAdderID.trim().isEmpty()) {
+                firstJoinItemsAdderID = null; // Treat empty string as null
+            }
+            firstJoinLevel = Math.max(1, firstJoinSection.getInt("Level", 1)); // Ensure at least level 1 // Ensure at least level 1
             firstJoinBlocksMined = Math.max(0L, firstJoinSection.getLong("BlocksMined", 0L)); // Ensure non-negative
             firstJoinEnchants = firstJoinSection.getStringList("Enchants"); // Can be null/empty
             if (firstJoinEnchants == null) firstJoinEnchants = Collections.emptyList(); // Ensure non-null
@@ -387,5 +401,9 @@ public class PickaxeConfig {
 
     /** Direct access to the config object - use with caution */
     @Nullable public FileConfiguration getConfig() { return pickaxeConfig; }
+
+    // ItemsAdder Support
+    @Nullable public String getPickaxeItemsAdderID() { return pickaxeItemsAdderID; }
+    @Nullable public String getFirstJoinItemsAdderID() { return firstJoinItemsAdderID; }
 
 } // End of PickaxeConfig class

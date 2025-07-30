@@ -174,3 +174,412 @@ enchants:
       - "&8| &bCurrent Level: &f%current_level%"
       - "&8| &bChance: &f%chance%%"
       - " "
+
+
+
+  # --- Example: Disc (Active) ---
+  disc:
+    RawName: "disc"
+    Name: "#B0B0B0&lDisc"
+    GuiName: "#B0B0B0&lDisc"
+    Material: MUSIC_DISC_13 # Example material
+    Enabled: true
+    InGuiSlot: 25
+    MaxLevel: 10
+    Cost: 5000.0
+    IncreaseCostBy: 1.4
+    CostFormula: "EXPONENTIAL"
+    PickaxeLevelRequired: 50
+    Settings:
+      ChanceBase: 0.005 # 0.5% base chance
+      ChanceIncreasePerLevel: 0.001 # +0.1% chance per level
+      Message: "&b&lWoosh! &3Disc cleared layer %layer%!" # %layer% placeholder added in handler
+      # BreakBedrock: false # Optional setting
+    lore:
+      - " "
+      - "&7Chance to clear the whole layer of the mining area" # Requires WorldGuard region with flag
+      - " "
+      - "&3&lInfo:"
+      - "&8| &bPrice: &f%cost%"
+      - "&8| &bMax Level: &f%max_level%"
+      - "&8| &bCurrent Level: &f%current_level%"
+      - "&8| &bChance: &f%chance%%"
+      - " "
+
+  # --- Example: Block Booster (Active) ---
+  blockbooster:
+    RawName: "blockbooster"
+    Name: "#DDA0DD&lBlock Booster"
+    GuiName: "#DDA0DD&lBlock Booster"
+    Material: EXPERIENCE_BOTTLE
+    Enabled: true
+    InGuiSlot: 28
+    MaxLevel: 10
+    Cost: 1500.0
+    IncreaseCostBy: 1.3
+    CostFormula: "EXPONENTIAL"
+    PickaxeLevelRequired: 30
+    Settings:
+      ChanceBase: 0.005 # 0.5% base chance
+      ChanceIncreasePerLevel: 0.002 # +0.2% chance per level
+      DurationBase: 45 # Seconds
+      DurationIncreasePerLevel: 5 # Seconds per level
+      MultiplierBase: 1.1 # Starting multiplier (e.g., 1.1 = 10% boost)
+      MultiplierIncreasePerLevel: 0.1 # Amount multiplier increases per level
+      Message: "&d&lBooster! &fx%multiplier% Blocks Mined for %duration%s" # %multiplier%, %duration%
+    lore:
+      - " "
+      - "&7Ability to multiply the mined blocks for limited time"
+      - " "
+      - "&3&lInfo:"
+      - "&8| &bPrice: &f%cost%"
+      - "&8| &bMax Level: &f%max_level%"
+      - "&8| &bCurrent Level: &f%current_level%"
+      - " "
+      - "&6&lAttributes:"
+      - "&8| &eEffect: &fx%multiplier% &7for &f%duration%s"
+      - "&8| &eChance: &f%chance%%"
+      - " "
+
+  # --- Example: Nuke (Active) ---
+  nuke:
+    RawName: "nuke"
+    Name: "#8B0000&lNUKE"
+    GuiName: "#8B0000&lNUKE"
+    Material: TNT_MINECART
+    Enabled: true
+    InGuiSlot: 29
+    MaxLevel: 5
+    Cost: 500000.0 # High cost example
+    IncreaseCostBy: 2.0 # High cost increase example
+    CostFormula: "EXPONENTIAL"
+    PickaxeLevelRequired: 200 # High level requirement example
+    Settings:
+      ChanceBase: 0.0005 # 0.05% base chance (very rare)
+      ChanceIncreasePerLevel: 0.0005 # +0.05% chance per level
+      Radius: 20 # Explosion radius (blocks)
+      BreakBedrock: false # Default false
+      CountdownSeconds: 3 # Seconds before detonation
+      CountdownBossBarEnabled: true # Show BossBar during countdown?
+      BossBarTitle: "&c&lNuke Detonating in: &e%countdown%s" # BossBar text (%countdown%)
+      BossBarColor: "RED" # Options: BLUE, GREEN, PINK, PURPLE, RED, WHITE, YELLOW
+      ParticleEffectEnabled: true # Show particles during countdown?
+      # Message: "&4&lNUKE ACTIVATED!" # Activation message (Optional - Title is now primary indicator)
+    lore:
+      - " "
+      - "&7Chance to break all blocks in the entire mining area" # Requires WorldGuard flag
+      - " "
+      - "&3&lInfo:"
+      - "&8| &bPrice: &f%cost%"
+      - "&8| &bMax Level: &f%max_level%"
+      - "&8| &bCurrent Level: &f%current_level%"
+      - "&8| &bChance: &f%chance%%"
+      - " "
+
+  # --- Example: Charity (Active - Vault) ---
+  charity:
+    RawName: "charity"
+    Name: "#FFC0CB&lCharity"
+    GuiName: "#FFC0CB&lCharity"
+    Material: GOLD_INGOT
+    Enabled: true
+    InGuiSlot: 30
+    MaxLevel: 10
+    Cost: 4000.0
+    IncreaseCostBy: 1.3
+    CostFormula: "EXPONENTIAL"
+    PickaxeLevelRequired: 40
+    Settings:
+      ChanceBase: 0.005 # 0.5% base chance
+      ChanceIncreasePerLevel: 0.002 # +0.2% chance per level
+      RewardMinBase: 25.0 # Vault money
+      RewardMinIncreasePerLevel: 5.0
+      RewardMaxBase: 75.0
+      RewardMaxIncreasePerLevel: 15.0
+      MessageGave: "&dCharity! &fShared %amount% with %count% players!" # %amount% (Vault formatted), %count%
+      MessageReceived: "&dCharity! &fReceived %amount% from %player%!" # %amount% (Vault formatted), %player%
+    lore:
+      - " "
+      - "&7Chance to give money to all online players" # Uses Vault if CurrencyType=VAULT
+      - " "
+      - "&3&lInfo:"
+      - "&8| &bPrice: &f%cost%"
+      - "&8| &bMax Level: &f%max_level%"
+      - "&8| &bCurrent Level: &f%current_level%"
+      - " "
+      - "&6&lAttributes:"
+      - "&8| &eMinimum Amount: &f%min_amount%" # Placeholders handle formatting
+      - "&8| &eMaximum Amount: &f%max_amount%"
+      - "&8| &eChance: &f%chance%%"
+      - " "
+
+  # --- Example: Salary (Active - Vault) ---
+  salary:
+    RawName: "salary"
+    Name: "#90EE90&lSalary"
+    GuiName: "#90EE90&lSalary"
+    Material: EMERALD
+    Enabled: true
+    InGuiSlot: 31
+    MaxLevel: 25
+    Cost: 1200.0
+    IncreaseCostBy: 1.18
+    CostFormula: "EXPONENTIAL"
+    PickaxeLevelRequired: 15
+    Settings:
+      ChanceBase: 0.01 # 1% base chance
+      ChanceIncreasePerLevel: 0.003 # +0.3% chance per level
+      RewardMinBase: 30.0 # Vault money
+      RewardMinIncreasePerLevel: 2.5
+      RewardMaxBase: 80.0
+      RewardMaxIncreasePerLevel: 7.5
+      Message: "&a&lSALARY! &fReceived +%amount%!" # %amount% (Vault formatted)
+    lore:
+      - " "
+      - "&7Chance to receive extra money while mining" # Uses Vault if CurrencyType=VAULT
+      - " "
+      - "&3&lInfo:"
+      - "&8| &bPrice: &f%cost%"
+      - "&8| &bMax Level: &f%max_level%"
+      - "&8| &bCurrent Level: &f%current_level%"
+      - " "
+      - "&6&lAttributes:"
+      - "&8| &eMinimum Amount: &f%min_amount%"
+      - "&8| &eMaximum Amount: &f%max_amount%"
+      - "&8| &eChance: &f%chance%%"
+      - " "
+
+  # --- Example: Key Finder (Active - Command) ---
+  keyfinder:
+    RawName: "keyfinder"
+    Name: "#FFD700&lKey Finder"
+    GuiName: "#FFD700&lKey Finder"
+    Material: TRIPWIRE_HOOK
+    Enabled: true
+    InGuiSlot: 32
+    MaxLevel: 10
+    Cost: 10000.0
+    IncreaseCostBy: 1.4
+    CostFormula: "EXPONENTIAL"
+    PickaxeLevelRequired: 50
+    Settings:
+      ChanceBase: 0.001 # 0.1% base chance
+      ChanceIncreasePerLevel: 0.0005 # +0.05% chance per level
+      Commands: # List of commands run by CONSOLE
+        - "crates key give %player% Vote 1" # %player% placeholder available
+        # - "another command for %player%"
+      Message: "&e&lKEYS! &fYou found a crate key while mining! &cCHANGE THIS IN ENCHANTS.YML" # Message sent to player
+    lore:
+      - " "
+      - "&7Chance to find Crate Keys while mining"
+      - " "
+      - "&3&lInfo:"
+      - "&8| &bPrice: &f%cost%"
+      - "&8| &bMax Level: &f%max_level%"
+      - "&8| &bCurrent Level: &f%current_level%"
+      - "&8| &bChance: &f%chance%%"
+      - " "
+
+  # --- Example: Voucher Finder (Active - Command) ---
+  voucherfinder:
+    RawName: "voucherfinder"
+    Name: "#AFEEEE&lVoucher Finder"
+    GuiName: "#AFEEEE&lVoucher Finder"
+    Material: PAPER
+    Enabled: true
+    InGuiSlot: 33
+    MaxLevel: 5
+    Cost: 25000.0
+    IncreaseCostBy: 1.5
+    CostFormula: "EXPONENTIAL"
+    PickaxeLevelRequired: 75
+    Settings:
+      ChanceBase: 0.0005 # 0.05% base chance
+      ChanceIncreasePerLevel: 0.0002 # +0.02% chance per level
+      Commands:
+        - "voucher give %player% ExampleRankUpgrade 1" # Example command
+      Message: "&a&lVOUCHER! &fYou found a special voucher! &cCHANGE THIS IN ENCHANTS.YML"
+    lore:
+      - " "
+      - "&7Chance to find Vouchers while mining"
+      - " "
+      - "&3&lInfo:"
+      - "&8| &bPrice: &f%cost%"
+      - "&8| &bMax Level: &f%max_level%"
+      - "&8| &bCurrent Level: &f%current_level%"
+      - "&8| &bChance: &f%chance%%"
+      - " "
+
+  # --- Example: Tokenator (Active - Tokens) ---
+  tokenator:
+    RawName: "tokenator"
+    Name: "#BA55D3&lTokenator"
+    GuiName: "#BA55D3&lTokenator"
+    Material: NETHER_STAR
+    Enabled: true
+    InGuiSlot: 34
+    MaxLevel: 30
+    Cost: 2500.0
+    IncreaseCostBy: 1.22
+    CostFormula: "EXPONENTIAL"
+    PickaxeLevelRequired: 35
+    Settings:
+      ChanceBase: 0.006 # 0.6% base chance
+      ChanceIncreasePerLevel: 0.0025 # +0.25% chance per level
+      RewardMinBase: 5 # Tokens (long)
+      RewardMinIncreasePerLevel: 2
+      RewardMaxBase: 15
+      RewardMaxIncreasePerLevel: 6
+      Message: "&d&lTOKENS! &fYour pickaxe found %amount% Tokens!" # %amount% (formatted number)
+    lore:
+      - " "
+      - "&7Chance to receive extra tokens while mining" # Uses internal tokens if CurrencyType=TOKENS
+      - " "
+      - "&3&lInfo:"
+      - "&8| &bPrice: &f%cost%"
+      - "&8| &bMax Level: &f%max_level%"
+      - "&8| &bCurrent Level: &f%current_level%"
+      - " "
+      - "&6&lAttributes:"
+      - "&8| &eMinimum Amount: &f%min_amount% Tokens"
+      - "&8| &eMaximum Amount: &f%max_amount% Tokens"
+      - "&8| &eChance: &f%chance%%"
+      - " "
+  blackhole:
+    Enabled: true
+    RawName: "blackhole"
+    Name: "&5&lB&d&ll&5&la&d&lc&5&lk&d&lh&5&lo&d&ll&5&le"
+    GuiName: "&5&lB&d&ll&5&la&d&lc&5&lk&d&lh&5&lo&d&ll&5&le"
+    Description:
+      - "&dCreates a clean vortex that floats"
+      - "&dblocks upward and converts to tokens!"
+    Material: ENDER_PEARL
+    CustomModelData: 0
+    InGuiSlot: 37
+    MaxLevel: 5
+    Cost: 50000.0
+    IncreaseCostBy: 25000.0
+    CostFormula: "LINEAR"
+    PickaxeLevelRequired: 15
+    Settings:
+      MaxBlocksToProcess: 400
+      Speed: 0.005
+      ChanceBase: 0.005
+      ChanceIncreasePerLevel: 0.02
+      RadiusBase: 20.0
+      RadiusIncreasePerLevel: 1.5
+      VortexHeight: 10
+      TokensPerBlockBase: 3
+      TokensPerBlockIncrease: 1
+      ActivationMessage: "&5&lBLACKHOLE! &dVortex created above - %blocks_count% blocks will float up!"
+      CompletionMessage: "&5&lVORTEX COMPLETE! &d+%tokens_gained% tokens from %blocks_consumed% floating blocks!"
+    lore:
+      - "&7Chance: &d%chance%%"
+      - "&7Radius: &d%radius% blocks"
+      - "&7Tokens per Block: &d%tokens_per_block%"
+      - " "
+      - "&dCreates a purple vortex above that"
+      - "&dslowly floats blocks upward with"
+      - "&dsmooth animations and converts"
+      - "&dthem into valuable tokens!"
+      - " "
+      - "&7Current Level: &f%current_level%"
+      - "&7Max Level: &f%max_level%"
+      - "&7Cost: &f%cost%"
+
+  lootpinata:
+    Enabled: true
+    RawName: "lootpinata"
+    Name: "&d&lL&e&lo&a&lo&b&lt &c&lP&6&li&e&ln&a&la&b&lt&d&la"
+    GuiName: "&d&lLoot &ePinata"
+    Description:
+      - "&7Rarely turns a broken block into a"
+      - "&7Loot Pinata! Hit it repeatedly for"
+      - "&7a shower of valuable rewards."
+    Material: MELON
+    CustomModelData: 0
+    InGuiSlot: 38
+    MaxLevel: 5
+    Cost: 75000.0
+    IncreaseCostBy: 35000.0
+    CostFormula: "LINEAR"
+    PickaxeLevelRequired: 20
+    Settings:
+      ChanceBase: 0.001
+      ChanceIncreasePerLevel: 0.0005
+      PinataMaterial: "MELON"
+      PinataHealthBase: 10
+      PinataHealthIncreasePerLevel: 2
+      TimeoutSeconds: 60 # ADDED: How many seconds until the pinata disappears
+      ActivationMessage: "&d&lPINATA! &eA Loot Pinata has appeared! Hit it!"
+      UnluckyMessage: "&cSo unlucky! The pinata was empty..."
+      TimeoutMessage: "&eThe loot pinata got away..." # ADDED: Message for when it disappears
+      Rewards:
+        diamond_block:
+          Chance: 0.50
+          Type: "ITEM"
+          Material: "DIAMOND_BLOCK"
+          Amount: 1
+          Message: "&aYou found a &bDiamond Block&a!"
+        gold_rush:
+          Chance: 0.75
+          Type: "ITEM"
+          Material: "GOLD_INGOT"
+          Amount: 16
+          Message: "&aYou found &e16 Gold Ingots&a!"
+        rare_key:
+          Chance: 0.10
+          Type: "COMMAND"
+          Command: "crate givekey %player% rare 1"
+          Message: "&eYou found a &6Rare Key&e!"
+        epic_money:
+          Chance: 0.25
+          Type: "COMMAND"
+          Command: "eco give %player% 10000"
+          Message: "&aYou found &e$10,000&a!"
+    lore:
+      - "&7Chance: &d%chance%%"
+      - "&7Health: &d%pinata_health% hits"
+      - " "
+      - "&dRarely turns a broken block into a"
+      - "&dLoot Pinata! Hit it repeatedly for"
+      - "&da shower of valuable rewards."
+      - " "
+      - "&7Current Level: &f%current_level%"
+      - "&7Max Level: &f%max_level%"
+      - "&7Cost: &f%cost%"
+  overcharge:
+    Enabled: true
+    RawName: "overcharge"
+    Name: "&c&lOvercharge"
+    GuiName: "&c&lOvercharge"
+    Material: REDSTONE_BLOCK
+    CustomModelData: 0
+    InGuiSlot: 39
+    MaxLevel: 50
+    Cost: 100000.0
+    IncreaseCostBy: 1.2
+    CostFormula: "EXPONENTIAL"
+    PickaxeLevelRequired: 50
+    Settings:
+      BlocksToChargeBase: 500
+      BlocksToChargeDecreasePerLevel: 10
+      BeamLength: 100
+      CooldownSeconds: 60
+      ActionBarCharging: "&eCharge &6[%bar%&6] &7(&e%current%&7/&6%required%&7)"
+      ActionBarReady: "&c&lOVERCHARGE READY! &7(Right-Click to Fire)"
+      ActionBarCooldown: "&cOn Cooldown &7(%time%s)"
+      ActivationMessage: "&c&lOVERCHARGE! &7Fired a laser beam!"
+    lore:
+      - "&7Build up charge by mining blocks."
+      - "&7Right-click when fully charged to"
+      - "&7fire a destructive laser beam."
+      - " "
+      - "&6&lAttributes:"
+      - "&8| &eBlocks to Charge: &f%blocks_to_charge%"
+      - "&8| &eBeam Length: &f%beam_length% blocks"
+      - "&8| &eCooldown: &f%cooldown% seconds"
+      - " "
+      - "&7Current Level: &f%current_level%"
+      - "&7Max Level: &f%max_level%"
+      - "&7Cost: &f%cost%"

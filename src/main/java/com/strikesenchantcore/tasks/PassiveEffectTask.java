@@ -1,157 +1,100 @@
 package com.strikesenchantcore.tasks;
 
 import com.strikesenchantcore.EnchantCore;
-import com.strikesenchantcore.enchants.EnchantmentWrapper; // Keep if needed later
-import com.strikesenchantcore.pickaxe.PickaxeManager;
+import com.strikesenchantcore.data.PlayerData;
+import com.strikesenchantcore.enchants.EnchantmentWrapper;
+import com.strikesenchantcore.util.ChatUtil;
 import com.strikesenchantcore.util.PDCUtil;
-
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode; // Import GameMode if needed for fly check later
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.jetbrains.annotations.NotNull; // <<<--- ADDED THIS IMPORT
 
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger; // Import Logger
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
-/**
- * A repeating task that applies passive potion effects (like Haste, Speed)
- * to players holding an EnchantCore pickaxe with the corresponding enchantments in their main hand.
- */
+
 public class PassiveEffectTask extends BukkitRunnable {
 
     private final EnchantCore plugin;
-    private final PickaxeManager pickaxeManager; // Cached instance
-    private final Logger logger; // Cache logger
 
-    // Define the keys for the enchants handled here (ensure these match RawName in enchants.yml)
-    private static final String HASTE_KEY = "haste";
-    private static final String SPEED_KEY = "speed";
-    // Add keys for Jump, Fly etc. if implementing them as passive potion effects
-
-    // Duration for applied effects (slightly longer than task interval to prevent flickering)
-    // Task runs every 20 ticks (1s), 40 ticks = 2s duration.
-    private static final int EFFECT_DURATION_TICKS = 40;
-
-    public PassiveEffectTask(@NotNull EnchantCore plugin) { // @NotNull used here
+    public PassiveEffectTask(EnchantCore plugin) {
         this.plugin = plugin;
-        this.pickaxeManager = plugin.getPickaxeManager(); // Get instance once
-        this.logger = plugin.getLogger();
-
-        if (this.pickaxeManager == null) {
-            logger.severe("PickaxeManager is null in PassiveEffectTask! Passive effects will not work.");
-            // Optionally cancel task immediately? Seems reasonable.
-            try { this.cancel(); } catch (IllegalStateException ignore) {}
-        }
     }
 
     @Override
     public void run() {
-        // Exit if manager is unavailable or plugin disabled
-        if (pickaxeManager == null || !plugin.isEnabled()) {
-            if (!this.isCancelled()) { // Prevent error spam if somehow run after cancelled
-                // Minimal logging here as constructor already warned if manager was null
-                if (!this.isCancelled()) logger.warning("PassiveEffectTask running but prerequisites failed. Cancelling task.");
-                try { this.cancel(); } catch (IllegalStateException ignore) {}
-            }
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            // --- Other passive effects like speed/haste would go here ---
+
+
+            // --- Overcharge Action Bar Logic ---
+            handleOverchargeActionBar(player);
+        }
+    }
+
+    private void handleOverchargeActionBar(Player player) {
+        // Essential manager checks
+        if (plugin.getPlayerDataManager() == null || plugin.getPickaxeManager() == null || plugin.getEnchantRegistry() == null) {
             return;
         }
 
-        // Iterate through all online players safely (uses a snapshot)
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            // Basic validity checks
-            if (player == null || !player.isValid() || player.isDead()) {
-                continue;
-            }
-
-            ItemStack itemInHand = player.getInventory().getItemInMainHand();
-
-            // Check if the player is holding the EnchantCore pickaxe *in their main hand*
-            if (PDCUtil.isEnchantCorePickaxe(itemInHand)) {
-                try {
-                    // Get all enchant levels from the pickaxe
-                    Map<String, Integer> enchantLevels = pickaxeManager.getAllEnchantLevels(itemInHand);
-
-                    // Apply Haste effect
-                    applyEffect(player, enchantLevels, HASTE_KEY, PotionEffectType.FAST_DIGGING);
-
-                    // Apply Speed effect
-                    applyEffect(player, enchantLevels, SPEED_KEY, PotionEffectType.SPEED);
-
-                    // --- Add other passive potion effects here ---
-                    // Example: applyEffect(player, enchantLevels, "jump", PotionEffectType.JUMP);
-
-                } catch (Exception e) {
-                    logger.log(Level.SEVERE, "Error processing passive effects for player " + player.getName(), e);
-                }
-            } else {
-                // Player is not holding the required pickaxe in main hand.
-                // Remove effects potentially applied by this task.
-                // WARNING: This might remove effects granted by other sources (beacons, commands, etc.).
-                try {
-                    removeEffect(player, PotionEffectType.FAST_DIGGING);
-                    removeEffect(player, PotionEffectType.SPEED);
-                    // --- Remove other passive effects here ---
-                    // Example: removeEffect(player, PotionEffectType.JUMP);
-                } catch (Exception e) {
-                    logger.log(Level.SEVERE, "Error removing passive effects for player " + player.getName(), e);
-                }
-            }
+        PlayerData playerData = plugin.getPlayerDataManager().getPlayerData(player.getUniqueId());
+        if (playerData == null) {
+            return;
         }
-    }
 
-    /**
-     * Helper method to apply a specific potion effect based on enchant level.
-     * Ensures amplifier is non-negative.
-     *
-     * @param player The player to apply the effect to.
-     * @param enchantLevels Map of active enchants on the item.
-     * @param enchantKey The RawName key of the enchantment.
-     * @param effectType The PotionEffectType to apply.
-     */
-    private void applyEffect(Player player, Map<String, Integer> enchantLevels, String enchantKey, PotionEffectType effectType) {
-        int level = enchantLevels.getOrDefault(enchantKey, 0);
-        if (level > 0) {
-            // Calculate amplifier (Potion level I = amplifier 0, II = 1, etc.)
-            // Ensure amplifier doesn't go below 0.
-            int amplifier = Math.max(0, level - 1);
+        // *** FIX: Check the item in the player's main hand ***
+        ItemStack itemInHand = player.getInventory().getItemInMainHand();
 
-            // Create the potion effect instance
-            // Ambient: false (particles less visible), Particles: false (no particles), Icon: true (show icon)
-            PotionEffect effect = new PotionEffect(effectType, EFFECT_DURATION_TICKS, amplifier, false, false, true);
+        // Check if the item in hand is a pickaxe with the Overcharge enchant
+        if (!PDCUtil.isEnchantCorePickaxe(itemInHand)) {
+            return; // Exit if not holding an EnchantCore pickaxe
+        }
 
-            // Apply the effect, overwriting existing ones of the same type if necessary
-            try {
-                player.addPotionEffect(effect, true); // true = force overwrite
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to apply effect " + effectType.getName() + " to " + player.getName(), e);
-            }
+        int level = plugin.getPickaxeManager().getEnchantLevel(itemInHand, "overcharge");
+        if (level <= 0) {
+            return; // Exit if the pickaxe in hand doesn't have Overcharge
+        }
+
+        EnchantmentWrapper ench = plugin.getEnchantRegistry().getEnchant("overcharge");
+        if (ench == null || !ench.isEnabled()) {
+            return;
+        }
+
+        ConfigurationSection s = ench.getCustomSettings();
+        int base = s.getInt("BlocksToChargeBase", 500);
+        int decrease = s.getInt("BlocksToChargeDecreasePerLevel", 10);
+        int required = Math.max(1, base - (decrease * (level - 1)));
+        int current = playerData.getOverchargeCharge();
+
+        String message;
+        long cooldownEnd = playerData.getOverchargeFireCooldownEnd();
+
+        if (System.currentTimeMillis() < cooldownEnd) {
+            // On Cooldown
+            long remainingSeconds = TimeUnit.MILLISECONDS.toSeconds(cooldownEnd - System.currentTimeMillis()) + 1;
+            message = s.getString("ActionBarCooldown", "&cOn Cooldown &7(%time%s)");
+            message = message.replace("%time%", String.valueOf(remainingSeconds));
+        } else if (current >= required) {
+            // Ready to fire
+            message = s.getString("ActionBarReady", "&c&lOVERCHARGE READY!");
         } else {
-            // Enchant level is 0 or not present, ensure the effect is removed
-            removeEffect(player, effectType);
-        }
-    }
+            // Charging
+            message = s.getString("ActionBarCharging", "&eCharge &6[%bar%&6] &7(&e%current%&7/&6%required%&7)");
+            double ratio = Math.min(1.0, (double) current / required);
+            int progressChars = (int) (ratio * 10);
+            String bar = "&a" + String.join("", Collections.nCopies(progressChars, "❚")) +
+                    "&7" + String.join("", Collections.nCopies(10 - progressChars, "❚"));
 
-    /**
-     * Helper method to remove a specific potion effect if the player has it.
-     * Logs potential errors.
-     *
-     * @param player The player.
-     * @param effectType The PotionEffectType to remove.
-     */
-    private void removeEffect(Player player, PotionEffectType effectType) {
-        // Check if player actually has the effect before trying to remove
-        if (player.hasPotionEffect(effectType)) {
-            try {
-                player.removePotionEffect(effectType);
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to remove effect " + effectType.getName() + " from " + player.getName(), e);
-            }
+            message = message.replace("%bar%", bar)
+                    .replace("%current%", String.valueOf(current))
+                    .replace("%required%", String.valueOf(required));
         }
-    }
 
-} // End of PassiveEffectTask class
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatUtil.color(message)));
+    }
+}

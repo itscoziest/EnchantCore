@@ -12,9 +12,10 @@ import com.strikesenchantcore.tasks.PassiveEffectTask;
 import com.strikesenchantcore.util.VaultHook;
 import com.strikesenchantcore.util.PapiHook;
 import com.strikesenchantcore.util.WorldGuardHook;
+import com.strikesenchantcore.util.ItemsAdderUtil;
 
-// +++ Import for local StrikesLicenseManager +++
-import com.strikesenchantcore.util.StrikesLicenseManager;
+// +++ Import for local StrikesLicenseManager (COMMENTED OUT FOR DEV) +++
+// import com.strikesenchantcore.util.StrikesLicenseManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
@@ -29,9 +30,6 @@ import java.nio.charset.StandardCharsets; // For encoding
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-// Note: Removed unused imports like HashMap, HashSet, Map, UUID if not directly used in this specific file's logic shown.
-// If your other methods (not shown but implied to exist) use them, ensure they are present.
-
 public final class EnchantCore extends JavaPlugin {
 
     final String GREEN = "\u001B[32m";
@@ -42,7 +40,8 @@ public final class EnchantCore extends JavaPlugin {
     private EnchantManager enchantManager;
     private PickaxeConfig pickaxeConfig;
     private PlayerDataManager playerDataManager;
-    private PickaxeManager pickaxeManager; // Duplicate declaration from your original, ensure this is intended or remove one
+    private PickaxeManager pickaxeManager;
+    private ItemsAdderUtil itemsAdderUtil;
     private EnchantRegistry enchantRegistry;
     private AutoSellConfig autoSellConfig;
     private MessageManager messageManager;
@@ -53,34 +52,10 @@ public final class EnchantCore extends JavaPlugin {
     private BlockBreakListener blockBreakListener;
     private static final int BSTATS_PLUGIN_ID = 25927;
 
-    // +++ License Configuration (using local StrikesLicenseManager) +++
-    // Obfuscated LICENSE_API_USER_ID "a1f66"
-    // Original: "a1f66"
-    // Key: 7
-    // 'a' (97) + 7 = 104 ('h')
-    // '1' (49) + 7 = 56  ('8')
-    // 'f' (102) + 7 = 109 ('m')
-    // '6' (54) + 7 = 61  ('=')
-    // '6' (54) + 7 = 61  ('=')
-    private static final byte[] IllIIIlIlIIllIIllIlIlllIIllIlllIllIllIIlllIIlIIllIIlllIlIIlllIlllIlIIIlllIIllIIIllIIllIlllIlllIlIIlllIlIllIIlIllIIllIIllIIIllIllIllIIlIlIllIIlllIIIllIIIlIIIlIllIIIlIIIlllIIlIIllIIIllIIIllIIlIIllIIIllIIlIllIIllIlllIllIIlIIIl = {
-            (byte) ('a' + 7), (byte) ('1' + 7), (byte) ('f' + 7),
-            (byte) ('6' + 7), (byte) ('6' + 7)
-    };
-    private static final int IIllIIIllIllIIlllIlllIIIllIlIIIllIIlIIllIIllIlllIIIllIllIllIIIlIlIllIIlIIlIIllIIllIlIIllIIIllIlIlIIIlIIlIllIllIlIlllIllIIIllIIllIIllIIlllIIllIIlllIllIIlllIlIIlllIIlIIIlllIIlllIIIlllIlllIlllIIlIlIIlIllIIIlllIlIlIllIIIlIIll = 7;
 
-    private static String getObfuscatedLicenseApiUserId() {
-        byte[] originalBytes = new byte[IllIIIlIlIIllIIllIlIlllIIllIlllIllIllIIlllIIlIIllIIlllIlIIlllIlllIlIIIlllIIllIIIllIIllIlllIlllIlIIlllIlIllIIlIllIIllIIllIIIllIllIllIIlIlIllIIlllIIIllIIIlIIIlIllIIIlIIIlllIIlIIllIIIllIIIllIIlIIllIIIllIIlIllIIllIlllIllIIlIIIl.length];
-        for (int i = 0; i < IllIIIlIlIIllIIllIlIlllIIllIlllIllIllIIlllIIlIIllIIlllIlIIlllIlllIlIIIlllIIllIIIllIIllIlllIlllIlIIlllIlIllIIlIllIIllIIllIIIllIllIllIIlIlIllIIlllIIIllIIIlIIIlIllIIIlIIIlllIIlIIllIIIllIIIllIIlIIllIIIllIIlIllIIllIlllIllIIlIIIl.length; i++) {
-            originalBytes[i] = (byte) (IllIIIlIlIIllIIllIlIlllIIllIlllIllIllIIlllIIlIIllIIlllIlIIlllIlllIlIIIlllIIllIIIllIIllIlllIlllIlIIlllIlIllIIlIllIIllIIllIIIllIllIllIIlIlIllIIlllIIIllIIIlIIIlIllIIIlIIIlllIIlIIllIIIllIIIllIIlIIllIIIllIIlIllIIllIlllIllIIlIIIl[i] - IIllIIIllIllIIlllIlllIIIllIlIIIllIIlIIllIIllIlllIIIllIllIllIIIlIlIllIIlIIlIIllIIllIlIIllIIIllIlIlIIIlIIlIllIllIlIlllIllIIIllIIllIIllIIlllIIllIIlllIllIIlllIlIIlllIIlIIIlllIIlllIIIlllIlllIlllIIlIlIIlIllIIIlllIlIlIllIIIlIIll);
-        }
-        return new String(originalBytes, StandardCharsets.UTF_8);
-    }
+    // +++ License Configuration (TEMPORARILY DISABLED FOR DEVELOPMENT) +++
+    // All license-related code is commented out below
 
-    private static final String IIllIIllIIllIlIIIlIllIlIIIlIIlIIlIIlllIlIIlIIIllIIlllIIllIIlIlllIIllIIIlIIIlIIlllIIIlIIllIIlIIIlllIllIllIIlllIllIllIIllIIlIIlIlIIIlIIIllIIllIIllIIIlIIlIIlIlllIllIIlIIlIlllIIllIlIIllIIllIIIllIllIIllIIllIllIIlllIllIIllIl = "%%__BUILTBYBIT__%%";
-    private static final String IIllIlIllIIIllIIlllIIIllIlIIllIIIlIIIllIlllIlIlllIllIIIllIllIllIIIlllIIllIIlIIIlllIIllIIIllIIllIllIIIlllIIlllIIllIIIlllIlIllIIIlIIlllIlIIIlllIIllIIllIIIlllIIllIIIllIIIllIIIllIlIlllIIllIIIllIIlllIIllIIlIIlIIllIllIIllIlllIllIlIllIIIlllIllIll = "%%__USER__%%";
-    private static final String IIllIIllIIllIllIIIllIIlllIIIllIllIIllIIIllIlllIlllIIllIIlIIIlIlIllIIlIIllIIlIIIlIllIlllIIllIllIIllIlIlIllIIllIIIllIIllIIIlllIlIIllIIlIllIIlIIlIIIlIIlIIlllIIlllIIllIIlIIllIIllIIlllIIlllIIlIlIIIlllIIIlllIIIlllIIlIIllIlIIlllIlllIll = "%%__STEAM64__%%";
-    private static final String IllIllIlllIIlIIlllIllIIlIIlllIIlIIlllIIllIIlIlIIllIIIllIIllIIllIIIlIIlIlIllIIIllIlllIllIIIlIIIllIIIllIIlIIlIIlIIllIIllIllIIlIIIllIIlIllIIlIIlIIllIlIIIllIllIIIllIIllIIIllIllIIlllIIllIIllIllIIlllIIllIIlllIlIIlIIIllIIlIIlIIl = "%%__STEAM32__%%";
-    private static final String IIlllIIlIllIIIllIllIIIlIlIllIllIIlIIlIllIIllIlIIlllIIIllIIIlIIlIIIllIIIlIlllIllIIlllIIllIIIlllIIllIIlIIlIIlIIIlIIIllIIlIlIIIllIIIllIIllIIIlllIIIllIIIllIIlIIlIlIllIllIlIIlllIlllIIIllIIlIIIlIllIlIllIlIllIIllIllIllIIlIl = "%%__TIMESTAMP__%%";
     @Override
     public void onLoad() {
         instance = this; // Set instance early
@@ -88,12 +63,11 @@ public final class EnchantCore extends JavaPlugin {
         if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
             getLogger().info("WorldGuard found, attempting to register flags...");
             try {
-                // Ensure WorldGuardHook is in the correct package if not in default com.strikesenchantcore.util
                 Class.forName("com.strikesenchantcore.util.WorldGuardHook");
                 WorldGuardHook.registerFlag();
             } catch (ClassNotFoundException e) {
                 getLogger().log(Level.WARNING, "WorldGuardHook class not found during onLoad. Flag registration deferred or failed.");
-            } catch (LinkageError | Exception e) { // Catch LinkageError as well for safety
+            } catch (LinkageError | Exception e) {
                 getLogger().log(Level.WARNING, "Could not register WorldGuard flag during onLoad: " + e.getMessage(), e);
             }
         } else {
@@ -105,14 +79,23 @@ public final class EnchantCore extends JavaPlugin {
     public void onEnable() {
         instance = this;
         final Logger log = getLogger();
-        log.info("=== Enabling EnchantCore v" + getDescription().getVersion() + " ===");
+        log.info("=== Enabling EnchantCore v" + getDescription().getVersion() + " (DEV MODE - NO LICENSE) ===");
 
         saveDefaultConfig();
         org.bukkit.configuration.file.FileConfiguration bukkitConfig = getConfig();
 
-        // +++ License Validation Block (using local StrikesLicenseManager) +++
+        // +++ LICENSE VALIDATION DISABLED FOR DEVELOPMENT +++
+        log.info(GREEN + "==============================================================");
+        log.info(GREEN + "                    🔧  DEVELOPMENT MODE 🔧                  ");
+        log.info(GREEN + "--------------------------------------------------------------");
+        log.info(GREEN + "              License validation is DISABLED");
+        log.info(GREEN + "              This is for development purposes only");
+        log.info(GREEN + "==============================================================" + RESET);
+
+        /*
+        // ORIGINAL LICENSE VALIDATION CODE (COMMENTED OUT)
         log.info("Validating license...");
-        String licenseKeyFromConfig = bukkitConfig.getString("license", "YOUR_LICENSE_KEY_HERE"); // Key path from config
+        String licenseKeyFromConfig = bukkitConfig.getString("license", "YOUR_LICENSE_KEY_HERE");
 
         if ("YOUR_LICENSE_KEY_HERE".equals(licenseKeyFromConfig) || licenseKeyFromConfig.trim().isEmpty()) {
             log.severe("============================================================");
@@ -197,8 +180,8 @@ public final class EnchantCore extends JavaPlugin {
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
-
-        // +++ END OF LICENSE VALIDATION BLOCK +++
+        */
+        // +++ END OF COMMENTED LICENSE VALIDATION BLOCK +++
 
         log.info("Initializing configuration managers...");
         this.messageManager = new MessageManager(this);
@@ -206,17 +189,17 @@ public final class EnchantCore extends JavaPlugin {
         this.pickaxeConfig = new PickaxeConfig(this);
         this.autoSellConfig = new AutoSellConfig(this);
         this.configManager = new ConfigManager(this);
+        this.itemsAdderUtil = new ItemsAdderUtil(this);
 
         if (this.configManager != null) {
             log.info("Loading all configurations through ConfigManager...");
-            this.configManager.loadConfigs(); // This should load individual configs like messages.yml etc.
+            this.configManager.loadConfigs();
         } else {
             log.severe("Core ConfigManager failed to initialize. Disabling EnchantCore.");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
 
-        // Check if specific managers (that are loaded by ConfigManager or have their own configs) are initialized
         if (this.pickaxeConfig == null || this.enchantManager == null || this.messageManager == null || this.autoSellConfig == null) {
             log.severe("!!! Critical: One or more specific config managers are null AFTER ConfigManager.loadConfigs(). Check constructors or ConfigManager logic. Disabling EnchantCore. !!!");
             Bukkit.getPluginManager().disablePlugin(this);
@@ -239,12 +222,10 @@ public final class EnchantCore extends JavaPlugin {
             log.info("PlaceholderAPI not found, placeholders disabled.");
         }
 
-        // Initialize WorldGuardHook instance if not already done by onLoad (e.g. if onLoad failed or plugin was reloaded)
         if (this.worldGuardHook == null && Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
-            this.worldGuardHook = new WorldGuardHook(this); // Assuming constructor takes EnchantCore instance
-            this.worldGuardHook.initializeWorldGuardInstance(); // Ensure this method exists and works
+            this.worldGuardHook = new WorldGuardHook(this);
+            this.worldGuardHook.initializeWorldGuardInstance();
         }
-        // Check if WorldGuardHook is enabled (flag registered and hook working)
         if (this.worldGuardHook == null || !this.worldGuardHook.isEnabled()) {
             log.warning("WorldGuard hook failed or flag registration issue. WorldGuard region features disabled.");
         }
@@ -252,9 +233,9 @@ public final class EnchantCore extends JavaPlugin {
 
         log.info("Initializing core managers...");
         this.playerDataManager = new PlayerDataManager(this);
-        this.pickaxeManager = new PickaxeManager(this); // Assuming this initializes one of the pickaxeManager fields
+        this.pickaxeManager = new PickaxeManager(this);
         this.enchantRegistry = new EnchantRegistry(this);
-        if (playerDataManager == null || this.pickaxeManager == null || enchantRegistry == null) { // Check this.pickaxeManager
+        if (playerDataManager == null || this.pickaxeManager == null || enchantRegistry == null) {
             log.severe("!!! Critical logic manager (PlayerData, Pickaxe, or EnchantRegistry) failed to initialize. Disabling EnchantCore. !!!");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
@@ -276,7 +257,7 @@ public final class EnchantCore extends JavaPlugin {
             log.severe("PlayerDataManager was null before loadOnlinePlayers could be called!");
         }
 
-        log.info("=== EnchantCore Enabled Successfully ===");
+        log.info("=== EnchantCore Enabled Successfully (DEV MODE) ===");
     }
 
     @Override
@@ -286,12 +267,11 @@ public final class EnchantCore extends JavaPlugin {
         if (passiveEffectTask != null && !passiveEffectTask.isCancelled()) {
             try { passiveEffectTask.cancel(); } catch (Exception e) { getLogger().warning("Error cancelling PassiveEffectTask: " + e.getMessage()); }
         }
-        // Cancel all tasks registered by this plugin.
         try { Bukkit.getScheduler().cancelTasks(this); } catch (Exception e) { getLogger().warning("Error cancelling general plugin tasks: " + e.getMessage()); }
         getLogger().info("Tasks cancelled.");
 
         getLogger().info("Performing Nuke cleanup...");
-        if (blockBreakListener != null) { // Check if listener was initialized
+        if (blockBreakListener != null) {
             try {
                 blockBreakListener.cleanupOnDisable();
             } catch (Exception e) {
@@ -303,10 +283,10 @@ public final class EnchantCore extends JavaPlugin {
         getLogger().info("Nuke cleanup finished.");
 
         getLogger().info("Saving player data...");
-        if (playerDataManager != null) { // Check if manager was initialized
+        if (playerDataManager != null) {
             try {
-                playerDataManager.stopAutoSaveTask(); // If you have an auto-save task
-                playerDataManager.saveAllPlayerData(true); // true for synchronous save on disable
+                playerDataManager.stopAutoSaveTask();
+                playerDataManager.saveAllPlayerData(true);
             } catch (Exception e) {
                 getLogger().log(Level.SEVERE, "Error saving player data during disable", e);
             }
@@ -321,7 +301,7 @@ public final class EnchantCore extends JavaPlugin {
         this.enchantManager = null;
         this.pickaxeConfig = null;
         this.playerDataManager = null;
-        this.pickaxeManager = null; // Nullify the used PickaxeManager instance
+        this.pickaxeManager = null;
         this.enchantRegistry = null;
         this.autoSellConfig = null;
         this.vaultHook = null;
@@ -329,7 +309,6 @@ public final class EnchantCore extends JavaPlugin {
         this.worldGuardHook = null;
         this.passiveEffectTask = null;
         this.blockBreakListener = null;
-        // No specific license object to nullify as StrikesLicenseManager was instantiated locally in onEnable
         instance = null;
         getLogger().info("Cleanup complete.");
         getLogger().info("=== EnchantCore Disabled ===");
@@ -338,22 +317,18 @@ public final class EnchantCore extends JavaPlugin {
     private void registerListeners() {
         PluginManager pm = Bukkit.getPluginManager();
 
-        // Ensure dependencies for BlockBreakListener are available
         if (worldGuardHook == null) {
             getLogger().warning("WorldGuardHook is null during listener registration attempt. BlockBreakListener might not function correctly with WorldGuard.");
         }
         if (autoSellConfig == null) {
             getLogger().warning("AutoSellConfig is null during listener registration attempt. AutoSell features in BlockBreakListener might not work.");
         }
-        if (configManager == null) { // Assuming ConfigManager might be needed by BBL or its features
+        if (configManager == null) {
             getLogger().warning("ConfigManager is null during listener registration attempt.");
         }
 
-
-        // Initialize blockBreakListener here if it hasn't been, ensuring its dependencies are ready
-        // The constructor used here is based on your initial code.
         if (this.blockBreakListener == null) {
-            if (worldGuardHook != null && autoSellConfig != null && this != null && configManager != null) { // Added configManager check
+            if (worldGuardHook != null && autoSellConfig != null && this != null && configManager != null) {
                 this.blockBreakListener = new BlockBreakListener(this, worldGuardHook, autoSellConfig);
             } else {
                 getLogger().severe("Cannot initialize BlockBreakListener due to missing dependencies (WorldGuardHook, AutoSellConfig, or ConfigManager).");
@@ -363,24 +338,25 @@ public final class EnchantCore extends JavaPlugin {
         if (this.blockBreakListener != null) {
             pm.registerEvents(this.blockBreakListener, this);
         } else {
-            // This log might be redundant if the one above was already triggered, but good for clarity.
             getLogger().severe("BlockBreakListener could not be registered as it (or its dependencies) were not initialized!");
         }
 
-        // Register other listeners
         pm.registerEvents(new PlayerInteractListener(this), this);
         pm.registerEvents(new PlayerJoinListener(this), this);
         pm.registerEvents(new EnchantGUIListener(this), this);
         pm.registerEvents(new ProtectionListeners(this), this);
         pm.registerEvents(new PlayerQuitListener(this), this);
+        pm.registerEvents(new PinataListener(this), this);
+        pm.registerEvents(new OverchargeListener(this), this);
     }
 
     private void registerCommands() {
+        getCommand("toggleanimations").setExecutor(new ToggleAnimationsCommand(this));
         PluginCommand enchantCoreCmd = getCommand("enchantcore");
         if (enchantCoreCmd != null) {
             EnchantCoreCommand enchantCoreExecutor = new EnchantCoreCommand(this);
             enchantCoreCmd.setExecutor(enchantCoreExecutor);
-            enchantCoreCmd.setTabCompleter(new EnchantCoreTabCompleter(this)); // Assuming separate tab completer
+            enchantCoreCmd.setTabCompleter(new EnchantCoreTabCompleter(this));
         } else { getLogger().log(Level.SEVERE, "Command 'enchantcore' not found in plugin.yml!"); }
 
         PluginCommand sellAllCmd = getCommand("sellall");
@@ -399,7 +375,7 @@ public final class EnchantCore extends JavaPlugin {
         if (tokensCmd != null) {
             TokensCommand tokensExecutor = new TokensCommand(this);
             tokensCmd.setExecutor(tokensExecutor);
-            tokensCmd.setTabCompleter(tokensExecutor); // TokensCommand can implement TabCompleter
+            tokensCmd.setTabCompleter(tokensExecutor);
         } else { getLogger().log(Level.SEVERE, "Command 'tokens' not found in plugin.yml!"); }
     }
 
@@ -418,13 +394,12 @@ public final class EnchantCore extends JavaPlugin {
     }
 
     private void startRepeatingTasks() {
-        // Ensure pickaxeManager is initialized before starting tasks that might depend on it
-        if (this.pickaxeManager == null) { // Check the instance field
+        if (this.pickaxeManager == null) {
             getLogger().severe("Cannot start PassiveEffectTask: PickaxeManager is null!");
             return;
         }
-        long delay = 40L;  // Default delay: 2 seconds (40 ticks)
-        long period = 20L; // Default period: 1 second (20 ticks)
+        long delay = 40L;
+        long period = 20L;
         try {
             this.passiveEffectTask = new PassiveEffectTask(this).runTaskTimer(this, delay, period);
             getLogger().log(Level.INFO, "Passive Effect Task started (Interval: " + (period / 20.0) + "s).");
@@ -436,8 +411,6 @@ public final class EnchantCore extends JavaPlugin {
     @NotNull
     public static EnchantCore getInstance() {
         if (instance == null) {
-            // This state should ideally not be reached if the plugin is properly managed by Bukkit.
-            // It might happen if called after onDisable or before onEnable fully completes.
             throw new IllegalStateException("EnchantCore instance is not available! Plugin might be disabled or not fully enabled yet.");
         }
         return instance;
@@ -447,9 +420,10 @@ public final class EnchantCore extends JavaPlugin {
     @Nullable public ConfigManager getConfigManager() { return configManager; }
     @Nullable public EnchantManager getEnchantManager() { return enchantManager; }
     @Nullable public PickaxeConfig getPickaxeConfig() { return pickaxeConfig; }
+    public ItemsAdderUtil getItemsAdderUtil() {
+        return itemsAdderUtil;
+    }
     @Nullable public PlayerDataManager getPlayerDataManager() { return playerDataManager; }
-    // This getter refers to the instance field `this.pickaxeManager`.
-    // If you have two declarations, ensure this is the one you intend to expose.
     @Nullable public PickaxeManager getPickaxeManager() { return this.pickaxeManager; }
     @Nullable public EnchantRegistry getEnchantRegistry() { return enchantRegistry; }
     @Nullable public VaultHook getVaultHook() { return vaultHook; }

@@ -14,6 +14,7 @@ import com.strikesenchantcore.util.ColorUtils;
 import com.strikesenchantcore.util.PDCUtil;
 import com.strikesenchantcore.util.PapiHook;
 import me.clip.placeholderapi.PlaceholderAPI; // Keep for PapiHook usage
+import com.strikesenchantcore.util.ItemsAdderUtil;
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -24,6 +25,7 @@ import org.bukkit.persistence.*;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
+
 
 // --- ADDED/KEPT IMPORTS ---
 import java.util.ArrayList;
@@ -44,13 +46,15 @@ import java.util.UUID;
 public class PickaxeManager {
 
     private final EnchantCore plugin;
-    private final Logger logger; // Cache logger
+    private final Logger logger;
+    private final ItemsAdderUtil itemsAdderUtil;// Cache logger
     // Cache NumberFormat instance - reuse it
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.US);
 
     public PickaxeManager(EnchantCore plugin) {
         this.plugin = plugin;
         this.logger = plugin.getLogger(); // Get logger instance
+        this.itemsAdderUtil = plugin.getItemsAdderUtil(); // Initialize ItemsAdder utility
     }
 
     /**
@@ -265,12 +269,19 @@ public class PickaxeManager {
             return null;
         }
         Material material = pConfig.getPickaxeMaterial();
-        if (material == null || material == Material.AIR) { // Also check AIR
-            logger.log(Level.SEVERE, "[EnchantCore][Error] Pickaxe Material is invalid or null in PickaxeConfig!");
+        String itemsAdderID = pConfig.getPickaxeItemsAdderID();
+
+// DEBUG: Print what we're trying to create
+        logger.info("DEBUG: Creating pickaxe with Material: " + material + ", ItemsAdder ID: " + itemsAdderID);
+
+// Create ItemStack using ItemsAdder if available, otherwise vanilla material
+        logger.info("DEBUG: Creating first join pickaxe with Material: " + material + ", ItemsAdder ID: " + itemsAdderID);
+
+        ItemStack pickaxe = itemsAdderUtil.createItemStack(material.name(), itemsAdderID);
+        if (pickaxe == null) {
+            logger.log(Level.SEVERE, "[EnchantCore][Error] Failed to create pickaxe ItemStack! Material: " + material + ", ItemsAdder ID: " + itemsAdderID);
             return null;
         }
-
-        ItemStack pickaxe = new ItemStack(material);
         // --- Tagging and Initial Data ---
         // Tag it FIRST before setting other PDC values
         PDCUtil.tagAsEnchantCorePickaxe(pickaxe);
@@ -326,11 +337,18 @@ public class PickaxeManager {
             return null;
         }
 
-        // Determine material, fallback to default pickaxe material if first-join override isn't set
+        // Determine material and ItemsAdder ID, with proper fallbacks
         Material material = pConfig.getFirstJoinMaterial();
+        String itemsAdderID = pConfig.getFirstJoinItemsAdderID();
+
+// Fallback to default pickaxe settings if first-join overrides aren't set
         if (material == null || material == Material.AIR) {
-            material = pConfig.getPickaxeMaterial(); // Fallback
+            material = pConfig.getPickaxeMaterial(); // Fallback material
         }
+        if (itemsAdderID == null || itemsAdderID.trim().isEmpty()) {
+            itemsAdderID = pConfig.getPickaxeItemsAdderID(); // Fallback ItemsAdder ID
+        }
+
         if (material == null || material == Material.AIR) { // Final check
             logger.severe("Cannot create first join pickaxe: No valid material found in PickaxeConfig!");
             return null;
@@ -347,7 +365,11 @@ public class PickaxeManager {
                 ? nameFormatOverride : pConfig.getPickaxeNameFormat();
 
         // --- Create and Tag Item ---
-        ItemStack pickaxe = new ItemStack(material);
+        ItemStack pickaxe = itemsAdderUtil.createItemStack(material.name(), itemsAdderID);
+        if (pickaxe == null) {
+            logger.severe("Failed to create first join pickaxe ItemStack! Material: " + material + ", ItemsAdder ID: " + itemsAdderID);
+            return null;
+        }
         PDCUtil.tagAsEnchantCorePickaxe(pickaxe); // Apply the tag
         // *** Corrected Check: Verify tag *after* applying it ***
         if (!PDCUtil.isEnchantCorePickaxe(pickaxe)) {

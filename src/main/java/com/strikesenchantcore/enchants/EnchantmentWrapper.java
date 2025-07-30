@@ -539,6 +539,18 @@ public class EnchantmentWrapper {
             }
 
 
+            if (result.contains("%tokens_per_block%")) {
+                if (customSettings.contains("TokensPerBlockBase")) {
+                    int tokensBase = customSettings.getInt("TokensPerBlockBase", 3);
+                    int tokensInc = customSettings.getInt("TokensPerBlockIncrease", 1);
+                    int tokensPerBlock = tokensBase + (tokensInc * levelFactor);
+                    result = result.replace("%tokens_per_block%", String.valueOf(Math.max(1, tokensPerBlock)));
+                } else {
+                    result = result.replace("%tokens_per_block%", naText);
+                }
+            }
+
+
 
 
             // Radius (Formatted to one decimal place)

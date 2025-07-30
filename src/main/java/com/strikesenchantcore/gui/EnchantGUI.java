@@ -61,7 +61,19 @@ public class EnchantGUI implements InventoryHolder {
     private final EnchantManager enchantManager; // Cache EnchantManager
     // --- End Cached Managers ---
 
-    private static final int INFO_ITEM_SLOT = 4; // Example slot for info item
+    // Menu button slots
+    private static final int[] MAIN_MENU_SLOTS = {0, 1, 2}; // Main enchants (current implementation)
+    private static final int[] GENS_MENU_SLOTS = {3, 4, 5}; // Gens enchants (future)
+    private static final int[] REBIRTH_MENU_SLOTS = {6, 7, 8}; // Rebirth enchants (future)
+    private static final int[] ADDITIONAL_MENU_SLOTS = {45, 47, 51, 53}; // Additional menus (future)
+
+    // Changed: Now using the close button slot for the info item
+    private int getInfoItemSlot() {
+        int slot = inventory.getSize() - 5;
+        if (inventory.getSize() <= 9 && slot < 0) slot = inventory.getSize() - 1;
+        if (slot < 0 || slot >= inventory.getSize()) slot = inventory.getSize() - 1;
+        return slot;
+    }
 
     public EnchantGUI(@NotNull EnchantCore plugin, @NotNull Player player, @NotNull PlayerData playerData, @NotNull ItemStack pickaxe) {
         this.plugin = plugin;
@@ -102,7 +114,7 @@ public class EnchantGUI implements InventoryHolder {
     }
 
     /**
-     * Populates the GUI with background filler, enchantment items, info item, and close button.
+     * Populates the GUI with background filler, enchantment items, info item, and menu buttons.
      */
     private void populateGUI() {
         if (inventory == null) {
@@ -111,6 +123,7 @@ public class EnchantGUI implements InventoryHolder {
         }
 
         fillBackground(); // Fill empty slots first
+        addMenuButtons(); // Add menu navigation buttons
 
         Map<String, Integer> currentEnchantsOnPickaxe = pickaxeManager.getAllEnchantLevels(this.pickaxe);
         int currentPickaxeLevel = PDCUtil.getPickaxeLevel(this.pickaxe);
@@ -120,7 +133,7 @@ public class EnchantGUI implements InventoryHolder {
             if (!enchant.isEnabled()) continue;
 
             int slot = enchant.getInGuiSlot();
-            if (slot >= 0 && slot < inventory.getSize()) {
+            if (slot >= 0 && slot < inventory.getSize() && !isMenuButtonSlot(slot)) {
                 try {
                     int currentLevelOfThisEnchant = currentEnchantsOnPickaxe.getOrDefault(enchant.getRawName().toLowerCase(), 0);
                     inventory.setItem(slot, enchant.createGuiItem(currentLevelOfThisEnchant, currentPickaxeLevel, currency, vaultHook));
@@ -132,7 +145,76 @@ public class EnchantGUI implements InventoryHolder {
         }
 
         addInfoItem();
-        addCloseButton();
+    }
+
+    /**
+     * Adds menu navigation buttons to the GUI.
+     */
+    private void addMenuButtons() {
+        // Main enchants menu buttons (slots 0, 1, 2) - Under development
+        for (int slot : MAIN_MENU_SLOTS) {
+            ItemStack mainButton = createGuiItemHelper(Material.BARRIER, "&c&lToken Enchants",
+                    List.of("&7Click to view main enchants", "&c&lUNDER DEVELOPMENT"), 0, false);
+            inventory.setItem(slot, mainButton);
+        }
+
+        // Gens enchants menu buttons (slots 3, 4, 5) - Under development
+        for (int slot : GENS_MENU_SLOTS) {
+            ItemStack gensButton = createGuiItemHelper(Material.BARRIER, "&c&lGens Enchants",
+                    List.of("&7Click to view gens enchants", "&c&lUNDER DEVELOPMENT"), 0, false);
+            inventory.setItem(slot, gensButton);
+        }
+
+        // Rebirth enchants menu buttons (slots 6, 7, 8) - Under development
+        for (int slot : REBIRTH_MENU_SLOTS) {
+            ItemStack rebirthButton = createGuiItemHelper(Material.BARRIER, "&d&lRebirth Enchants",
+                    List.of("&7Click to view rebirth enchants", "&c&lUNDER DEVELOPMENT"), 0, false);
+            inventory.setItem(slot, rebirthButton);
+        }
+
+        // Additional menu buttons with specific titles
+        if (45 < inventory.getSize()) {
+            ItemStack pickaxeSkinsButton = createGuiItemHelper(Material.BARRIER, "&6&lPickaxe Skins",
+                    List.of("&7Click to view pickaxe skins", "&c&lUNDER DEVELOPMENT"), 0, false);
+            inventory.setItem(45, pickaxeSkinsButton);
+        }
+
+        if (47 < inventory.getSize()) {
+            ItemStack mortarButton = createGuiItemHelper(Material.BARRIER, "&6&lMortar",
+                    List.of("&7Click to view mortar options", "&c&lUNDER DEVELOPMENT"), 0, false);
+            inventory.setItem(47, mortarButton);
+        }
+
+        if (51 < inventory.getSize()) {
+            ItemStack crystalsButton = createGuiItemHelper(Material.BARRIER, "&6&lCrystals",
+                    List.of("&7Click to view crystals", "&c&lUNDER DEVELOPMENT"), 0, false);
+            inventory.setItem(51, crystalsButton);
+        }
+
+        if (53 < inventory.getSize()) {
+            ItemStack attachmentsButton = createGuiItemHelper(Material.BARRIER, "&6&lAttachments",
+                    List.of("&7Click to view attachments", "&c&lUNDER DEVELOPMENT"), 0, false);
+            inventory.setItem(53, attachmentsButton);
+        }
+    }
+
+    /**
+     * Checks if a slot is used for menu buttons.
+     */
+    private boolean isMenuButtonSlot(int slot) {
+        for (int menuSlot : MAIN_MENU_SLOTS) {
+            if (slot == menuSlot) return true;
+        }
+        for (int menuSlot : GENS_MENU_SLOTS) {
+            if (slot == menuSlot) return true;
+        }
+        for (int menuSlot : REBIRTH_MENU_SLOTS) {
+            if (slot == menuSlot) return true;
+        }
+        for (int menuSlot : ADDITIONAL_MENU_SLOTS) {
+            if (slot == menuSlot) return true;
+        }
+        return false;
     }
 
     /**
@@ -159,13 +241,14 @@ public class EnchantGUI implements InventoryHolder {
 
     /**
      * Creates and adds the informational item (displaying the pickaxe) to the GUI.
+     * Now placed in what was previously the close button slot.
      */
     private void addInfoItem() {
         try {
             pickaxeManager.updatePickaxe(this.pickaxe, player);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error updating pickaxe meta before creating info item for " + player.getName(), e);
-            inventory.setItem(INFO_ITEM_SLOT, createGuiItemHelper(Material.BARRIER, "&cError Displaying Pickaxe", List.of("&7Update failed"), 0, false));
+            inventory.setItem(getInfoItemSlot(), createGuiItemHelper(Material.BARRIER, "&cError Displaying Pickaxe", List.of("&7Update failed"), 0, false));
             return;
         }
 
@@ -173,7 +256,7 @@ public class EnchantGUI implements InventoryHolder {
         ItemMeta meta = infoPickaxeClone.getItemMeta();
         if (meta == null) {
             logger.warning("Failed to get ItemMeta from cloned pickaxe for info item (Player: " + player.getName() + ")");
-            inventory.setItem(INFO_ITEM_SLOT, createGuiItemHelper(Material.BARRIER, "&cError Displaying Pickaxe", List.of("&7Could not get meta"), 0, false));
+            inventory.setItem(getInfoItemSlot(), createGuiItemHelper(Material.BARRIER, "&cError Displaying Pickaxe", List.of("&7Could not get meta"), 0, false));
             return;
         }
 
@@ -205,23 +288,7 @@ public class EnchantGUI implements InventoryHolder {
         if (!infoPickaxeClone.setItemMeta(meta)) {
             logger.warning("Failed to set ItemMeta for info item clone (Player: " + player.getName() + ")");
         }
-        inventory.setItem(INFO_ITEM_SLOT, infoPickaxeClone);
-    }
-
-
-    /**
-     * Creates and adds the close button to the GUI.
-     */
-    private void addCloseButton() {
-        String name = messageManager.getMessage("gui.close_button_name", "&cClose Menu");
-        List<String> lore = messageManager.getMessageList("gui.close_button_lore", List.of("&7Click to exit the enchant menu."));
-
-        int closeSlot = inventory.getSize() - 5;
-        if (inventory.getSize() <= 9 && closeSlot < 0) closeSlot = inventory.getSize() - 1;
-        if (closeSlot < 0 || closeSlot >= inventory.getSize()) closeSlot = inventory.getSize() - 1;
-
-        ItemStack closeItem = createGuiItemHelper(Material.BARRIER, name, lore, 0, false);
-        inventory.setItem(closeSlot, closeItem);
+        inventory.setItem(getInfoItemSlot(), infoPickaxeClone);
     }
 
     /**
@@ -245,6 +312,11 @@ public class EnchantGUI implements InventoryHolder {
             return;
         }
 
+        // Handle menu button clicks
+        if (handleMenuButtonClick(player, slot)) {
+            return; // Menu button was clicked, stop processing
+        }
+
         // *** Use CORRECT getter name and translate color ***
         String translatedFillerName = ColorUtils.translateColors(enchantManager.getGuiFillerNameFormat());
         if (clickedItem == null || clickedItem.getType() == Material.AIR ||
@@ -256,19 +328,12 @@ public class EnchantGUI implements InventoryHolder {
             return;
         }
 
-        if (slot == INFO_ITEM_SLOT) {
+        // Changed: Check for info item slot (now in the old close button position)
+        if (slot == getInfoItemSlot()) {
             if (debug) logger.finest("handleClick: Clicked info item slot.");
             return;
         }
 
-        int closeButtonEffectiveSlot = inventory.getSize() - 5;
-        if (inventory.getSize() <= 9 && closeButtonEffectiveSlot < 0) closeButtonEffectiveSlot = inventory.getSize() - 1;
-        if (closeButtonEffectiveSlot < 0 || closeButtonEffectiveSlot >= inventory.getSize()) closeButtonEffectiveSlot = inventory.getSize() - 1;
-        if (slot == closeButtonEffectiveSlot && clickedItem.getType() == Material.BARRIER) {
-            player.closeInventory();
-            playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
-            return;
-        }
         // --- End Initial Validation ---
 
 
@@ -461,6 +526,56 @@ public class EnchantGUI implements InventoryHolder {
         // --- End Apply Upgrade ---
     }
 
+    /**
+     * Handles menu button clicks and returns true if a menu button was clicked.
+     */
+    private boolean handleMenuButtonClick(Player player, int slot) {
+        // Check Main Menu buttons (slots 0, 1, 2) - Under development
+        for (int mainSlot : MAIN_MENU_SLOTS) {
+            if (slot == mainSlot) {
+                playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+                ChatUtil.sendMessage(player, "&c&lUNDER DEVELOPMENT");
+                player.closeInventory();
+                // TODO: Open main enchants menu when ready
+                return true;
+            }
+        }
+
+        // Check Gens Menu buttons (slots 3, 4, 5) - Under development
+        for (int gensSlot : GENS_MENU_SLOTS) {
+            if (slot == gensSlot) {
+                playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+                ChatUtil.sendMessage(player, "&c&lUNDER DEVELOPMENT");
+                player.closeInventory();
+                // TODO: Open gens enchants menu when ready
+                return true;
+            }
+        }
+
+        // Check Rebirth Menu buttons (slots 6, 7, 8) - Under development
+        for (int rebirthSlot : REBIRTH_MENU_SLOTS) {
+            if (slot == rebirthSlot) {
+                playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+                ChatUtil.sendMessage(player, "&c&lUNDER DEVELOPMENT");
+                player.closeInventory();
+                // TODO: Open rebirth enchants menu when ready
+                return true;
+            }
+        }
+
+        // Check Additional Menu buttons (slots 45, 47, 51, 53) - Under development
+        for (int additionalSlot : ADDITIONAL_MENU_SLOTS) {
+            if (slot == additionalSlot) {
+                playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+                ChatUtil.sendMessage(player, "&c&lUNDER DEVELOPMENT");
+                player.closeInventory();
+                // TODO: Open additional menus when ready
+                return true;
+            }
+        }
+
+        return false; // No menu button was clicked
+    }
 
     /** Opens the GUI inventory for the player. */
     public void open() {
