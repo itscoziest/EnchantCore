@@ -1,8 +1,8 @@
 # Enchant GUI settings
 EnchantGUI:
-  Title: "#3B3B98&lPickaxe Enchantments"
+  Title: "&f"
   Size: 54
-  FillEmptySlots: true
+  FillEmptySlots: false
   FillerMaterial: BLACK_STAINED_GLASS_PANE
   FillerName: " "
   FillerCustomModelData: 0
@@ -23,7 +23,7 @@ enchants:
     GuiName: "#a1e8a1&lEfficiency"
     Material: BEACON
     Enabled: true
-    InGuiSlot: 19
+    InGuiSlot: 10
     MaxLevel: 100
     Cost: 100.0
     IncreaseCostBy: 1.12
@@ -46,7 +46,7 @@ enchants:
     GuiName: "#fdd835&lFortune"
     Material: DIAMOND
     Enabled: true
-    InGuiSlot: 20
+    InGuiSlot: 11
     MaxLevel: 50
     Cost: 500.0
     IncreaseCostBy: 1.18
@@ -70,7 +70,7 @@ enchants:
     GuiName: "#FFFACD&lHaste"
     Material: FEATHER
     Enabled: true
-    InGuiSlot: 21
+    InGuiSlot: 12
     MaxLevel: 3
     Cost: 5000.0
     IncreaseCostBy: 10000.0
@@ -93,7 +93,7 @@ enchants:
     GuiName: "#ADD8E6&lSpeed"
     Material: SUGAR
     Enabled: true
-    InGuiSlot: 22
+    InGuiSlot: 13
     MaxLevel: 2
     Cost: 7500.0
     IncreaseCostBy: 12500.0
@@ -116,7 +116,7 @@ enchants:
     GuiName: "#87CEEB&lBlessing"
     Material: GLOWSTONE_DUST
     Enabled: true
-    InGuiSlot: 23
+    InGuiSlot: 14
     MaxLevel: 25
     Cost: 800.0
     IncreaseCostBy: 1.15
@@ -153,7 +153,7 @@ enchants:
     GuiName: "#FF6347&lExplosive"
     Material: TNT
     Enabled: true
-    InGuiSlot: 24
+    InGuiSlot: 15
     MaxLevel: 20
     Cost: 300.0
     IncreaseCostBy: 1.20
@@ -180,11 +180,11 @@ enchants:
   # --- Example: Disc (Active) ---
   disc:
     RawName: "disc"
-    Name: "#B0B0B0&lDisc"
-    GuiName: "#B0B0B0&lDisc"
-    Material: MUSIC_DISC_13 # Example material
+    Name: "#B0B0B0&lLayer"
+    GuiName: "#B0B0B0&lLayer"
+    Material: POLISHED_BLACKSTONE_SLAB
     Enabled: true
-    InGuiSlot: 25
+    InGuiSlot: 16
     MaxLevel: 10
     Cost: 5000.0
     IncreaseCostBy: 1.4
@@ -213,7 +213,7 @@ enchants:
     GuiName: "#DDA0DD&lBlock Booster"
     Material: EXPERIENCE_BOTTLE
     Enabled: true
-    InGuiSlot: 28
+    InGuiSlot: 19
     MaxLevel: 10
     Cost: 1500.0
     IncreaseCostBy: 1.3
@@ -248,7 +248,7 @@ enchants:
     GuiName: "#8B0000&lNUKE"
     Material: TNT_MINECART
     Enabled: true
-    InGuiSlot: 29
+    InGuiSlot: 20
     MaxLevel: 5
     Cost: 500000.0 # High cost example
     IncreaseCostBy: 2.0 # High cost increase example
@@ -283,7 +283,7 @@ enchants:
     GuiName: "#FFC0CB&lCharity"
     Material: GOLD_INGOT
     Enabled: true
-    InGuiSlot: 30
+    InGuiSlot: 21
     MaxLevel: 10
     Cost: 4000.0
     IncreaseCostBy: 1.3
@@ -320,7 +320,7 @@ enchants:
     GuiName: "#90EE90&lSalary"
     Material: EMERALD
     Enabled: true
-    InGuiSlot: 31
+    InGuiSlot: 22
     MaxLevel: 25
     Cost: 1200.0
     IncreaseCostBy: 1.18
@@ -356,7 +356,7 @@ enchants:
     GuiName: "#FFD700&lKey Finder"
     Material: TRIPWIRE_HOOK
     Enabled: true
-    InGuiSlot: 32
+    InGuiSlot: 23
     MaxLevel: 10
     Cost: 10000.0
     IncreaseCostBy: 1.4
@@ -387,7 +387,7 @@ enchants:
     GuiName: "#AFEEEE&lVoucher Finder"
     Material: PAPER
     Enabled: true
-    InGuiSlot: 33
+    InGuiSlot: 24
     MaxLevel: 5
     Cost: 25000.0
     IncreaseCostBy: 1.5
@@ -417,23 +417,23 @@ enchants:
     GuiName: "#BA55D3&lTokenator"
     Material: NETHER_STAR
     Enabled: true
-    InGuiSlot: 34
+    InGuiSlot: 25
     MaxLevel: 30
     Cost: 2500.0
     IncreaseCostBy: 1.22
     CostFormula: "EXPONENTIAL"
     PickaxeLevelRequired: 35
     Settings:
-      ChanceBase: 0.006 # 0.6% base chance
-      ChanceIncreasePerLevel: 0.0025 # +0.25% chance per level
-      RewardMinBase: 5 # Tokens (long)
+      ChanceBase: 0.006
+      ChanceIncreasePerLevel: 0.0025
+      RewardMinBase: 5
       RewardMinIncreasePerLevel: 2
       RewardMaxBase: 15
       RewardMaxIncreasePerLevel: 6
-      Message: "&d&lTOKENS! &fYour pickaxe found %amount% Tokens!" # %amount% (formatted number)
+      Message: "&d&lTOKENS! &fYour pickaxe found %amount% Tokens!"
     lore:
       - " "
-      - "&7Chance to receive extra tokens while mining" # Uses internal tokens if CurrencyType=TOKENS
+      - "&7Chance to receive extra tokens while mining"
       - " "
       - "&3&lInfo:"
       - "&8| &bPrice: &f%cost%"
@@ -455,20 +455,21 @@ enchants:
       - "&dblocks upward and converts to tokens!"
     Material: ENDER_PEARL
     CustomModelData: 0
-    InGuiSlot: 37
+    InGuiSlot: 28
     MaxLevel: 5
     Cost: 50000.0
     IncreaseCostBy: 25000.0
     CostFormula: "LINEAR"
     PickaxeLevelRequired: 15
     Settings:
-      MaxBlocksToProcess: 400
+      MaxBlocksToProcess: 300
       Speed: 0.005
       ChanceBase: 0.005
       ChanceIncreasePerLevel: 0.02
       RadiusBase: 20.0
       RadiusIncreasePerLevel: 1.5
-      VortexHeight: 10
+      UseForcedVortexY: true
+      ForcedVortexBaseY: 110
       TokensPerBlockBase: 3
       TokensPerBlockIncrease: 1
       ActivationMessage: "&5&lBLACKHOLE! &dVortex created above - %blocks_count% blocks will float up!"
@@ -498,7 +499,7 @@ enchants:
       - "&7a shower of valuable rewards."
     Material: MELON
     CustomModelData: 0
-    InGuiSlot: 38
+    InGuiSlot: 29
     MaxLevel: 5
     Cost: 75000.0
     IncreaseCostBy: 35000.0
@@ -555,7 +556,7 @@ enchants:
     GuiName: "&c&lOvercharge"
     Material: REDSTONE_BLOCK
     CustomModelData: 0
-    InGuiSlot: 39
+    InGuiSlot: 30
     MaxLevel: 50
     Cost: 100000.0
     IncreaseCostBy: 1.2
@@ -583,3 +584,123 @@ enchants:
       - "&7Current Level: &f%current_level%"
       - "&7Max Level: &f%max_level%"
       - "&7Cost: &f%cost%"
+
+  jackpot:
+    RawName: "jackpot"
+    Name: "&6&lJackpot"
+    GuiName: "&6&lJackpot"
+    Material: GOLD_BLOCK
+    Enabled: true
+    InGuiSlot: 31
+    MaxLevel: 10
+    Cost: 500000.0
+    IncreaseCostBy: 1.6
+    CostFormula: "EXPONENTIAL"
+    PickaxeLevelRequired: 150
+    Settings:
+      ChanceBase: 0.5
+      ChanceIncreasePerLevel: 0.0001
+      Commands:
+        - "eco give %player% 1000000"
+        - "broadcast &6&lJACKPOT! &e%player% has hit the grand prize! (not yet configured)"
+
+      Message: "&6&lJACKPOT! &fYou've won a massive prize!"
+    lore:
+      - " "
+      - "&7An extremely rare chance to win"
+      - "&7a massive prize while mining."
+      - " "
+      - "&3&lInfo:"
+      - "&8| &bPrice: &f%cost%"
+      - "&8| &bMax Level: &f%max_level%"
+      - "&8| &bCurrent Level: &f%current_level%"
+      - "&8| &bChance: &f%chance%%"
+      - " "
+
+  # --- Dragon Burst (NEW) ---
+  dragonburst:
+    RawName: "dragonburst"
+    Name: "#5E2D79&lDragon Burst"
+    GuiName: "#5E2D79&lDragon Burst"
+    Material: DRAGON_HEAD
+    Enabled: true
+    InGuiSlot: 32
+    MaxLevel: 15
+    Cost: 100000.0
+    IncreaseCostBy: 1.4
+    CostFormula: "EXPONENTIAL"
+    PickaxeLevelRequired: 120
+    Settings:
+      ChanceBase: 0.5 # 1% base chance
+      ChanceIncreasePerLevel: 0.002 # +0.2% per level
+      Message: "&5&lDRAGON BURST! &dUnleashed a torrent of destruction!"
+      # How many small explosions are in one burst.
+      BurstCountBase: 3
+      BurstCountIncreasePerLevel: 1
+      # The radius of each small explosion in the burst.
+      BurstRadius: 3
+      # How many blocks apart each explosion spawns.
+      BurstSpacing: 4
+      # How fast the burst travels (delay in ticks between each explosion).
+      # 4 ticks = 0.2 seconds between bursts.
+      BurstTickDelay: 4
+    lore:
+      - " "
+      - "&7Unleashes a rapid burst of destructive"
+      - "&7draconic energy in the direction you are facing."
+      - " "
+      - "&3&lInfo:"
+      - "&8| &bPrice: &f%cost%"
+      - "&8| &bMax Level: &f%max_level%"
+      - "&8| &bCurrent Level: &f%current_level%"
+      - " "
+      - "&6&lAttributes:"
+      - "&8| &eExplosions per Burst: &f%burst_count%"
+      - "&8| &eExplosion Radius: &f%burst_radius% Blocks"
+      - "&8| &eChance: &f%chance%%"
+      - " "
+
+
+  frostbitefury:
+    RawName: "frostbitefury"
+    Name: "#74B9FF&lFrostbite Fury"
+    GuiName: "#74B9FF&lFrostbite Fury"
+    Material: PACKED_ICE
+    Enabled: true
+    InGuiSlot: 33
+    MaxLevel: 20
+    Cost: 120000.0
+    IncreaseCostBy: 1.45
+    CostFormula: "EXPONENTIAL"
+    PickaxeLevelRequired: 130
+    Settings:
+      ChanceBase: 0.008 # 0.8% base chance
+      ChanceIncreasePerLevel: 0.002
+      Message: "&b&lFROSTBITE! &fShattered %blocks_shattered% blocks for &d%gems_gained% Gems!"
+      # --- Effect Settings ---
+      # The radius of the freeze effect around the player.
+      RadiusBase: 3
+      RadiusIncreasePerLevel: 0.5
+      VerticalRadius: 1
+      # The material blocks turn into. Use ICE or PACKED_ICE.
+      FreezeMaterial: "PACKED_ICE"
+      # The delay in seconds between freezing and shattering.
+      ShatterDelaySeconds: 2
+      # How many gems are awarded for each block shattered.
+      GemsPerBlockBase: 1
+      GemsPerBlockIncreasePerLevel: 1
+    lore:
+      - " "
+      - "&7Chance to freeze a sphere of blocks"
+      - "&7around you, which then shatters for Gems."
+      - " "
+      - "&3&lInfo:"
+      - "&8| &bPrice: &f%cost%"
+      - "&8| &bMax Level: &f%max_level%"
+      - "&8| &bCurrent Level: &f%current_level%"
+      - " "
+      - "&6&lAttributes:"
+      - "&8| &eRadius: &f%radius% Blocks"
+      - "&8| &eGems per Block: &f%gems_per_block%"
+      - "&8| &eChance: &f%chance%%"
+      - " "

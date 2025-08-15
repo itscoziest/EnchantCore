@@ -90,6 +90,7 @@ public class PlayerDataManager {
                 boolean showMessages = playerConfig.getBoolean("settings.showEnchantMessages", true);
                 boolean showSounds = playerConfig.getBoolean("settings.showEnchantSounds", true);
                 long tokens = playerConfig.getLong("currency.tokens", 0L);
+                long gems = playerConfig.getLong("currency.gems", 0L); // ADD THIS LINE
                 long boosterEndTime = playerConfig.getLong("boosters.block.endTime", 0L);
                 double boosterMultiplier = playerConfig.getDouble("boosters.block.multiplier", 1.0);
 
@@ -98,6 +99,7 @@ public class PlayerDataManager {
                 data.setShowEnchantMessages(showMessages);
                 data.setShowEnchantSounds(showSounds);
                 data.setTokens(tokens);
+                data.setGems(gems);
                 // Restore booster state (will auto-deactivate if end time is past)
                 data.blockBoosterEndTime = boosterEndTime;
                 data.blockBoosterMultiplier = boosterMultiplier;
@@ -180,6 +182,7 @@ public class PlayerDataManager {
             playerConfig.set("settings.showEnchantMessages", data.isShowEnchantMessages());
             playerConfig.set("settings.showEnchantSounds", data.isShowEnchantSounds());
             playerConfig.set("currency.tokens", data.getTokens());
+            playerConfig.set("currency.gems", data.getGems());
             // Save booster info even if inactive (preserves remaining time if server restarts)
             playerConfig.set("boosters.block.endTime", data.blockBoosterEndTime);
             playerConfig.set("boosters.block.multiplier", data.blockBoosterMultiplier);

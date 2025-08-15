@@ -28,6 +28,13 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger; // Import Logger
 
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
+import org.bukkit.NamespacedKey;
+import org.bukkit.persistence.PersistentDataType;
+
 public class EnchantCoreCommand implements CommandExecutor {
 
     // Cached Managers & Logger
@@ -74,6 +81,8 @@ public class EnchantCoreCommand implements CommandExecutor {
             return true;
         }
 
+
+
         String subCommand = args[0].toLowerCase();
 
         // Use switch expression for cleaner handling (Java 14+) - Revert to classic switch if needed
@@ -83,9 +92,29 @@ public class EnchantCoreCommand implements CommandExecutor {
             case "givemax"      -> handleGiveMax(sender, args, label);
             case "setlevel"     -> handleSetLevel(sender, args, label);
             case "addblocks"    -> handleAddBlocks(sender, args, label);
+            case "cleanup_armorstands" -> handleCleanup(sender);
             default             -> sendUsage(sender);
         }
         return true;
+    }
+
+
+    private void handleCleanup(CommandSender sender) {
+        if (!sender.hasPermission("enchantcore.admin.cleanup")) {
+            ChatUtil.sendMessage(sender, plugin.getMessageManager().getMessage("common.no_permission", "&cYou do not have permission."));
+            return;
+        }
+        int removedCount = 0;
+        ChatUtil.sendMessage(sender, "&eSearching for and removing stray blackhole armor stands...");
+        for (World world : Bukkit.getWorlds()) {
+            for (Entity entity : world.getEntities()) {
+                if (entity instanceof ArmorStand && entity.getPersistentDataContainer().has(new NamespacedKey(plugin, "blackhole_armor_stand"), PersistentDataType.BYTE)) {
+                    entity.remove();
+                    removedCount++;
+                }
+            }
+        }
+        ChatUtil.sendMessage(sender, "&aCleanup complete. Removed " + removedCount + " stray armor stands.");
     }
 
     /** Sends the command usage message from messages.yml */

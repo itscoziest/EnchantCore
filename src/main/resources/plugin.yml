@@ -36,6 +36,10 @@ commands:
     usage: /tokens <subcommand> [args...]
     aliases: [token, tk]
     permission: enchantcore.tokens.balance
+  gems:
+    description: "Manage and check Gem balances."
+    usage: "/gems <help|balance|give|take|set>"
+    aliases: [g, gem]
 
 permissions:
   enchantcore.admin:
@@ -83,4 +87,26 @@ permissions:
     default: op
   enchantcore.tokens.modify.set:
     description: Allows setting token balance (/tokens set ...).
+    default: op
+  enchantcore.gems.balance:
+    description: Allows checking own gem balance (/gems).
+    default: true
+  enchantcore.gems.balance.others:
+    description: Allows checking other players' gem balance (/gems balance <player>).
+    default: op
+  enchantcore.gems.modify.*:
+    description: Allows modifying gem balances (give/take/set).
+    default: op
+    children:
+      enchantcore.gems.modify.give: true
+      enchantcore.gems.modify.take: true
+      enchantcore.gems.modify.set: true
+  enchantcore.gems.modify.give:
+    description: Allows giving gems (/gems give ...).
+    default: op
+  enchantcore.gems.modify.take:
+    description: Allows taking gems (/gems take ...).
+    default: op
+  enchantcore.gems.modify.set:
+    description: Allows setting gem balance (/gems set ...).
     default: op

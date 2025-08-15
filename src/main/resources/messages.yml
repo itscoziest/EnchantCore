@@ -94,6 +94,32 @@ commands:
       - "&e/tokens set <player> <amount> &7- Set a player's token balance (Admin)."
       - "&e/tokens help &7- Shows this help message."
       - "&m----------------------------------------------------"
+  gems:
+    no_permission: "&cYou do not have permission for this gem command."
+    player_only: "&cThis command can only be run by a player."
+    player_not_found: "&cPlayer '%player%' not found."
+    invalid_amount: "&cInvalid gem amount specified."
+    balance_self: "&aYour Gem Balance: &d%balance%"
+    balance_other: "&a%player%'s Gem Balance: &d%balance%"
+    give_success: "&aGave &d%amount% Gems &ato &f%player%."
+    take_success: "&cTook &d%amount% Gems &cfrom &f%player%."
+    set_success: "&aSet &f%player%'s &aGem balance to &d%amount%."
+    data_error: "&cCould not load gem data for %player%."
+    take_fail_insufficient: "&cFailed to take gems: Player only has %balance% Gems."
+    unknown_subcommand: "&cUnknown subcommand. Use /gems help."
+    usage_balance: "&cUsage: /gems balance [player]"
+    usage_give: "&cUsage: /gems give <player> <amount>"
+    usage_take: "&cUsage: /gems take <player> <amount>"
+    usage_set: "&cUsage: /gems set <player> <amount>"
+    help:
+      - "&m-----------------&r &dEnchantCore Gems Help &m-----------------"
+      - "&e/gems &7- Check your gem balance."
+      - "&e/gems balance [player] &7- Check balance."
+      - "&e/gems give <player> <amount> &7- Give gems to a player."
+      - "&e/gems take <player> <amount> &7- Take gems from a player."
+      - "&e/gems set <player> <amount> &7- Set a player's gem balance."
+      - "&e/gems help &7- Shows this help message."
+      - "&m----------------------------------------------------"
 
 # Pickaxe related messages
 pickaxe:

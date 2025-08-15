@@ -216,6 +216,9 @@ public class PapiHook extends PlaceholderExpansion {
             case "pickaxe_enchants_count": {
                 return (pickaxe != null) ? String.valueOf(pickaxeManager.getAllEnchantLevels(pickaxe).size()) : "0";
             }
+            case "gems_raw": return String.valueOf(playerData.getGems());
+            case "gems_formatted": return formatNumberFixed(playerData.getGems());
+            case "gems_comma": return COMMA_SEPARATOR_FORMAT.format(playerData.getGems());
             case "messages_enabled_tf": return String.valueOf(playerData.isShowEnchantMessages());
             case "sounds_enabled_tf": return String.valueOf(playerData.isShowEnchantSounds());
             case "messages_enabled_status": return playerData.isShowEnchantMessages() ? "Enabled" : "Disabled";

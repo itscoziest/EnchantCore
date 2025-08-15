@@ -263,6 +263,16 @@ public final class EnchantCore extends JavaPlugin {
     @Override
     public void onDisable() {
         getLogger().info("=== Disabling EnchantCore v" + getDescription().getVersion() + " ===");
+
+        // --- ADD THIS BLOCK FOR ARMOR STAND CLEANUP ---
+        getLogger().info("Cleaning up stray armor stands...");
+        if (blockBreakListener != null) {
+            try {
+                blockBreakListener.cleanupBlackholeStands();
+            } catch (Exception e) {
+                getLogger().log(Level.SEVERE, "Error during Blackhole armor stand cleanup", e);
+            }
+        }
         getLogger().info("Cancelling tasks...");
         if (passiveEffectTask != null && !passiveEffectTask.isCancelled()) {
             try { passiveEffectTask.cancel(); } catch (Exception e) { getLogger().warning("Error cancelling PassiveEffectTask: " + e.getMessage()); }
@@ -377,6 +387,13 @@ public final class EnchantCore extends JavaPlugin {
             tokensCmd.setExecutor(tokensExecutor);
             tokensCmd.setTabCompleter(tokensExecutor);
         } else { getLogger().log(Level.SEVERE, "Command 'tokens' not found in plugin.yml!"); }
+
+        PluginCommand gemsCmd = getCommand("gems");
+        if (gemsCmd != null) {
+            GemsCommand gemsExecutor = new GemsCommand(this);
+            gemsCmd.setExecutor(gemsExecutor);
+            gemsCmd.setTabCompleter(gemsExecutor);
+        } else { getLogger().log(Level.SEVERE, "Command 'gems' not found in plugin.yml!"); }
     }
 
     private void initializeMetrics() {

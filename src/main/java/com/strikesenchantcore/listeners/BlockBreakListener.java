@@ -16,6 +16,7 @@ import com.strikesenchantcore.util.VaultHook;
 import com.strikesenchantcore.util.WorldGuardHook;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -65,6 +66,7 @@ public class BlockBreakListener implements Listener {
     public static final String METADATA_PINATA_BLOCK = "EnchantCore_PinataBlock";
     private static final int MAX_BLOCKS_PER_TICK = Integer.MAX_VALUE;
     private static final long MAX_NANOS_PER_TICK = Long.MAX_VALUE;
+    private static final NamespacedKey BLACKHOLE_ARMOR_STAND_KEY = new NamespacedKey(EnchantCore.getInstance(), "blackhole_armor_stand");
 
     private final Map<UUID, AutoSellSummary> playerSummaries = new ConcurrentHashMap<>();
     private final Map<UUID, BukkitTask> pendingSummaryTasks = new ConcurrentHashMap<>();
@@ -100,12 +102,45 @@ public class BlockBreakListener implements Listener {
         double radiusIncrease = settings.getDouble("RadiusIncreasePerLevel", 1.0);
         int tokensPerBlockBase = settings.getInt("TokensPerBlockBase", 3);
         int tokensPerBlockIncrease = settings.getInt("TokensPerBlockIncrease", 1);
-        int vortexHeight = settings.getInt("VortexHeight", 8);
+        int vortexHeight = settings.getInt("VortexHeight", 10);
         double speed = settings.getDouble("Speed", 0.02);
 
         double finalRadius = baseRadius + (radiusIncrease * Math.max(0, level - 1));
         int tokensPerBlock = tokensPerBlockBase + (tokensPerBlockIncrease * Math.max(0, level - 1));
-        Location vortexCenter = epicenter.clone().add(0.5, vortexHeight, 0.5);
+
+        // --- NEW LOGIC USING THE CONFIGURABLE Y-LEVEL ---
+        int topY;
+        World world = epicenter.getWorld();
+
+        // Check if the new forced Y-level setting is enabled in enchants.yml
+        if (settings.getBoolean("UseForcedVortexY", false)) {
+            // If yes, use the Y-level set directly in the config.
+            topY = settings.getInt("ForcedVortexBaseY", 150); // Uses 150 as a fallback if key is missing
+        } else {
+            // If the config option is false or missing, fall back to automatic WorldGuard detection.
+            if (worldGuardHook != null && worldGuardHook.isEnabled()) {
+                Set<ProtectedRegion> regions = worldGuardHook.getRegionsIfEffectiveStateMatches(
+                        epicenter, WorldGuardHook.ENCHANTCORE_FLAG, StateFlag.State.ALLOW
+                );
+
+                if (!regions.isEmpty()) {
+                    topY = regions.stream()
+                            .mapToInt(region -> region.getMaximumPoint().getY())
+                            .max()
+                            .orElse(world.getHighestBlockYAt(epicenter));
+                } else {
+                    topY = world.getHighestBlockYAt(epicenter);
+                }
+            } else {
+                topY = world.getHighestBlockYAt(epicenter);
+            }
+        }
+
+        // Calculate the vortex Y-level using the determined base and the configured height.
+        int vortexY = topY + vortexHeight;
+
+        // Create the vortex location.
+        Location vortexCenter = new Location(world, epicenter.getX() + 0.5, vortexY, epicenter.getZ() + 0.5);
 
         List<Block> allBlocks = findBlocksInRadius(epicenter, (int) Math.ceil(finalRadius), false, "Blackhole");
         if (allBlocks.isEmpty()) return;
@@ -125,7 +160,7 @@ public class BlockBreakListener implements Listener {
 
         player.playSound(player.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1.5f, 0.6f);
 
-        new UltraSmoothBlackholeTask(player, playerData, vortexCenter, allBlocks, tokensPerBlock, speed, settings).runTaskTimer(plugin, 0L, 1L);
+        new UltraSmoothBlackholeTask(player, playerData, vortexCenter, allBlocks, tokensPerBlock, speed, settings).runTaskTimer(plugin, 0L, 2L);
     }
 
     private class UltraSmoothBlackholeTask extends BukkitRunnable {
@@ -368,6 +403,8 @@ public class BlockBreakListener implements Listener {
                     as.setGravity(false);
                     as.setVisible(false);
                     as.getEquipment().setHelmet(new ItemStack(material));
+                    // --- ADD THIS LINE TO TAG THE ENTITY ---
+                    as.getPersistentDataContainer().set(BLACKHOLE_ARMOR_STAND_KEY, PersistentDataType.BYTE, (byte) 1);
                     try {
                         as.setMarker(true);
                     } catch (NoSuchMethodError e) {
@@ -508,6 +545,28 @@ public class BlockBreakListener implements Listener {
         }
         playerSummaries.remove(playerUUID);
     }
+
+
+
+
+
+    public void cleanupBlackholeStands() {
+        int removedCount = 0;
+        for (World world : Bukkit.getWorlds()) {
+            for (Entity entity : world.getEntities()) {
+                if (entity instanceof ArmorStand && entity.getPersistentDataContainer().has(BLACKHOLE_ARMOR_STAND_KEY, PersistentDataType.BYTE)) {
+                    entity.remove();
+                    removedCount++;
+                }
+            }
+        }
+        if (removedCount > 0) {
+            logger.info("[Blackhole Cleanup] Removed " + removedCount + " stray blackhole armor stands on shutdown.");
+        }
+    }
+
+
+
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
@@ -745,6 +804,14 @@ public class BlockBreakListener implements Listener {
             return;
         }
 
+
+
+
+
+
+
+
+
         BukkitTask newTask = new BukkitRunnable() {
             @Override
             public void run() {
@@ -790,6 +857,222 @@ public class BlockBreakListener implements Listener {
 
         if (footer != null && !footer.isEmpty()) { ChatUtil.sendMessage(player, footer); }
     }
+
+
+
+
+
+
+    private void handleDragonBurst(Player player, Location epicenter, ItemStack pickaxe, int level, ConfigurationSection settings, PlayerData playerData) {
+        if (settings == null) {
+            logger.warning("[DragonBurst] Cannot activate for " + player.getName() + ": ConfigurationSection is null!");
+            return;
+        }
+        new DragonBurstTask(player, pickaxe, epicenter, level, settings, playerData).runTaskTimer(plugin, 0L, settings.getLong("BurstTickDelay", 4L));
+    }
+
+    private class DragonBurstTask extends BukkitRunnable {
+        private final Player player;
+        private final ItemStack pickaxe;
+        private final Location startLocation;
+        private final int level;
+        private final ConfigurationSection settings;
+        private final PlayerData playerData;
+        private final Vector direction;
+
+        private final int burstCount;
+        private final int burstRadius;
+        private final int burstSpacing;
+
+        private int burstsFired = 0;
+
+        public DragonBurstTask(Player p, ItemStack pick, Location start, int l, ConfigurationSection s, PlayerData pd) {
+            this.player = p;
+            this.pickaxe = pick;
+            this.startLocation = start;
+            this.level = l;
+            this.settings = s;
+            this.playerData = pd;
+            this.direction = p.getEyeLocation().getDirection().normalize();
+
+            int levelFactor = Math.max(0, this.level - 1);
+            this.burstCount = settings.getInt("BurstCountBase", 3) + (settings.getInt("BurstCountIncreasePerLevel", 1) * levelFactor);
+            this.burstRadius = settings.getInt("BurstRadius", 3);
+            this.burstSpacing = settings.getInt("BurstSpacing", 4);
+        }
+
+        @Override
+        public void run() {
+            if (burstsFired >= burstCount || player == null || !player.isOnline()) {
+                this.cancel();
+                return;
+            }
+
+            // Calculate the center of the next explosion
+            double distance = burstSpacing * (burstsFired + 1);
+            Location explosionCenter = startLocation.clone().add(direction.clone().multiply(distance));
+
+            // Play sounds and visuals
+            if (playerData.isShowEnchantSounds()) {
+                playSoundAt(player, explosionCenter, Sound.ENTITY_ENDER_DRAGON_HURT, 1.2f, 1.5f);
+            }
+            if (playerData.isShowEnchantAnimations()) {
+                spawnParticleEffect(player.getWorld(), Particle.DRAGON_BREATH, explosionCenter, 50, burstRadius * 0.7, null);
+            }
+
+            // Find blocks and task them for breaking
+            List<Block> blocksToBreak = findBlocksInRadius(explosionCenter, burstRadius, false, "DragonBurst");
+            if (!blocksToBreak.isEmpty()) {
+                new AreaBlockBreakTask(player, pickaxe, blocksToBreak, false, explosionCenter, "DragonBurst", playerData, true)
+                        .runTaskTimer(plugin, 0L, 1L);
+            }
+
+            burstsFired++;
+        }
+    }
+
+
+
+
+
+
+    private void handleFrostbiteFury(Player player, ItemStack pickaxe, int level, ConfigurationSection settings, PlayerData playerData) {
+        if (settings == null) {
+            logger.warning("[FrostbiteFury] Cannot activate for " + player.getName() + ": ConfigurationSection is null!");
+            return;
+        }
+        // Start the multi-stage task
+        new FrostbiteFuryTask(player, pickaxe, level, settings, playerData).runTask(plugin);
+    }
+
+    private class FrostbiteFuryTask extends BukkitRunnable {
+        private final Player player;
+        private final ItemStack pickaxe;
+        private final int level;
+        private final ConfigurationSection settings;
+        private final PlayerData playerData;
+
+        public FrostbiteFuryTask(Player p, ItemStack pick, int l, ConfigurationSection s, PlayerData pd) {
+            this.player = p;
+            this.pickaxe = pick;
+            this.level = l;
+            this.settings = s;
+            this.playerData = pd;
+        }
+
+        @Override
+        public void run() {
+            // --- PHASE 1: FREEZE ---
+            if (player == null || !player.isOnline()) return;
+
+            int levelFactor = Math.max(0, level - 1);
+            double radius = settings.getDouble("RadiusBase", 3) + (settings.getDouble("RadiusIncreasePerLevel", 0.5) * levelFactor);
+            int verticalRadius = settings.getInt("VerticalRadius", 1); // Get the new setting
+
+            Material freezeMaterial = Material.matchMaterial(settings.getString("FreezeMaterial", "PACKED_ICE"));
+            if (freezeMaterial == null || (freezeMaterial != Material.ICE && freezeMaterial != Material.PACKED_ICE)) {
+                freezeMaterial = Material.PACKED_ICE;
+            }
+
+            // Use the new findBlocksInCylinder method instead of findBlocksInRadius
+            List<Block> blocksToFreeze = findBlocksInCylinder(player.getLocation(), (int) Math.round(radius), verticalRadius, false, "FrostbiteFury");
+            if (blocksToFreeze.isEmpty()) return;
+
+            final Map<Block, BlockData> originalBlocks = new HashMap<>();
+            for (Block b : blocksToFreeze) {
+                originalBlocks.put(b, b.getBlockData()); // Store original state
+                b.setType(freezeMaterial, true); // Turn to ice/packed ice
+            }
+
+            if (playerData.isShowEnchantSounds()) {
+                playSoundAt(player, player.getLocation(), Sound.BLOCK_GLASS_BREAK, 1.0f, 0.7f);
+            }
+            if (playerData.isShowEnchantAnimations()) {
+                spawnParticleEffect(player.getWorld(), Particle.SNOWFLAKE, player.getLocation().add(0, 1, 0), 100, radius * 0.8, null);
+            }
+
+            long shatterDelay = settings.getLong("ShatterDelaySeconds", 2L) * 20L;
+
+            // --- PHASE 2: SHATTER (Scheduled after delay) ---
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (player == null || !player.isOnline()) return;
+
+                    int blocksShattered = 0;
+                    for (Map.Entry<Block, BlockData> entry : originalBlocks.entrySet()) {
+                        Block block = entry.getKey();
+                        // Check if the block is still the ice we placed
+                        if (block.getType() == originalBlocks.get(block).getMaterial() || block.getType() == Material.ICE || block.getType() == Material.PACKED_ICE) {
+                            // Mark the block to prevent re-triggering enchants, then break it
+                            block.setMetadata(METADATA_ENCHANT_BREAK, new FixedMetadataValue(plugin, true));
+                            block.breakNaturally(pickaxe);
+                            blocksShattered++;
+                            // Remove metadata shortly after to clean up
+                            Bukkit.getScheduler().runTaskLater(plugin, () -> block.removeMetadata(METADATA_ENCHANT_BREAK, plugin), 2L);
+                        }
+                    }
+
+                    if (blocksShattered == 0) return;
+
+                    // --- PHASE 3: REWARD ---
+                    int gemsBase = settings.getInt("GemsPerBlockBase", 1);
+                    int gemsIncrease = settings.getInt("GemsPerBlockIncreasePerLevel", 1);
+                    long gemsPerBlock = gemsBase + (gemsIncrease * levelFactor);
+                    long totalGemsGained = gemsPerBlock * blocksShattered;
+
+                    if (totalGemsGained > 0) {
+                        playerData.addGems(totalGemsGained);
+                        if (playerData.isShowEnchantSounds()) {
+                            playSoundAt(player, player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f);
+                        }
+                        if (playerData.isShowEnchantMessages()) {
+                            String message = settings.getString("Message", "&b&lFROSTBITE! &fShattered %blocks_shattered% blocks for &d%gems_gained% Gems!")
+                                    .replace("%blocks_shattered%", String.valueOf(blocksShattered))
+                                    .replace("%gems_gained%", String.valueOf(totalGemsGained));
+                            ChatUtil.sendMessage(player, message);
+                        }
+                    }
+                }
+            }.runTaskLater(plugin, shatterDelay);
+        }
+    }
+
+
+    private List<Block> findBlocksInCylinder(Location center, int radius, int verticalRadius, boolean breakBedrock, String enchantName) {
+        List<Block> blocks = new ArrayList<>();
+        World w = center.getWorld();
+        if (w == null || radius < 0 || verticalRadius < 0) return blocks;
+
+        int cX = center.getBlockX();
+        int cY = center.getBlockY();
+        int cZ = center.getBlockZ();
+        final double radiusSquared = (double) radius * radius + 0.01;
+
+        // Loop horizontally in a square
+        for (int x = cX - radius; x <= cX + radius; x++) {
+            for (int z = cZ - radius; z <= cZ + radius; z++) {
+                // Check if the point is within the circular radius
+                if (square(x - cX) + square(z - cZ) <= radiusSquared) {
+                    // Then loop vertically for the height of the cylinder
+                    for (int y = cY - verticalRadius; y <= cY + verticalRadius; y++) {
+                        if (y < w.getMinHeight() || y >= w.getMaxHeight()) continue;
+
+                        Location checkLoc = new Location(w, x, y, z);
+                        if (worldGuardHook.isEnchantAllowed(checkLoc)) {
+                            Block bl = w.getBlockAt(checkLoc);
+                            if (isBreakable(bl, breakBedrock)) {
+                                blocks.add(bl);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return blocks;
+    }
+
+
 
     private void processEnchantmentActivations(Player player, Block originalBlock, ItemStack pickaxe, PlayerData playerData, Map<String, Integer> enchantLevels, BlockBreakEvent event) {
         final boolean debug = isDebugMode();
@@ -840,6 +1123,9 @@ public class BlockBreakListener implements Listener {
                     case "voucherfinder":   handleVoucherFinder(player, level, settings, playerData); break;
                     case "blackhole":       handleBlackhole(player, originalBlock.getLocation(), pickaxe, level, settings, playerData); break;
                     case "lootpinata":      handleLootPinata(player, originalBlock, level, settings, playerData, event); break;
+                    case "jackpot":         handleJackpot(player, level, settings, playerData); break;
+                    case "dragonburst":     handleDragonBurst(player, originalBlock.getLocation(), pickaxe, level, settings, playerData); break;
+                    case "frostbitefury":   handleFrostbiteFury(player, pickaxe, level, settings, playerData); break;
                 }
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "[DEBUG] Exception during handler execution for enchant " + enchantKey + " for player " + player.getName(), e);
@@ -848,7 +1134,7 @@ public class BlockBreakListener implements Listener {
     }
 
     private boolean isAreaEffectEnchant(String key) {
-        return key.equals("explosive") || key.equals("nuke") || key.equals("disc") || key.equals("blackhole");
+        return key.equals("explosive") || key.equals("nuke") || key.equals("disc") || key.equals("blackhole") || key.equals("dragonburst") || key.equals("frostbitefury");
     }
 
     private boolean requiresSettings(String key) {
@@ -1308,6 +1594,12 @@ public class BlockBreakListener implements Listener {
     private void handleKeyFinder(Player p, int l, ConfigurationSection s, PlayerData pd) {
         handleGenericCommandEnchant(p, l, s, "KeyFinder", pd);
     }
+
+    private void handleJackpot(Player p, int l, ConfigurationSection s, PlayerData pd) {
+        handleGenericCommandEnchant(p, l, s, "Jackpot", pd);
+    }
+
+
     private void handleVoucherFinder(Player p, int l, ConfigurationSection s, PlayerData pd) {
         handleGenericCommandEnchant(p, l, s, "VoucherFinder", pd);
     }
@@ -1613,6 +1905,9 @@ public class BlockBreakListener implements Listener {
         private final boolean debug;
         private final UUID playerUUID;
         private final boolean directSetToAir;
+        // --- NEW FIELDS TO STORE LIMITS ---
+        private final int maxBlocksPerTick;
+        private final long maxNanosPerTick;
 
         public AreaBlockBreakTask(Player p, ItemStack pick, List<Block> blocks, boolean bb, Location el, String name, PlayerData pd, boolean directSetToAir){
             this.player = p;
@@ -1625,7 +1920,12 @@ public class BlockBreakListener implements Listener {
             this.debug = isDebugMode();
             this.playerUUID = p.getUniqueId();
             this.directSetToAir = directSetToAir;
-            if(debug) BlockBreakListener.this.logger.info("[AreaTask:"+name+"] Created for " + p.getName() + " with " + remainingBlocks.size() + " blocks. DirectAir: " + directSetToAir);
+
+            // --- READ LIMITS FROM CONFIG ---
+            this.maxBlocksPerTick = configManager.getConfig().getInt("Performance.MaxBlocksPerTick", 300);
+            this.maxNanosPerTick = configManager.getConfig().getLong("Performance.MaxNanosPerTick", 3000000L);
+
+            if(debug) BlockBreakListener.this.logger.info("[AreaTask:"+name+"] Created for " + p.getName() + " with " + remainingBlocks.size() + " blocks. Limits: " + maxBlocksPerTick + " blocks/tick, " + (maxNanosPerTick / 1000000.0) + "ms/tick");
         }
 
         @Override
@@ -1643,11 +1943,12 @@ public class BlockBreakListener implements Listener {
 
             int processedThisTick = 0;
             long startTickTime = System.nanoTime();
-            long timeLimit = BlockBreakListener.MAX_NANOS_PER_TICK;
 
-            while (!remainingBlocks.isEmpty() && processedThisTick < BlockBreakListener.MAX_BLOCKS_PER_TICK) {
-                if (System.nanoTime() - startTickTime > timeLimit) {
-                    if(debug) logger.warning("[Dbg][" + enchantName + " Task] Tick time limit (" + (timeLimit/1_000_000.0) + "ms) exceeded for " + player.getName() + ". Processed: " + processedThisTick +". Remaining: " + remainingBlocks.size());
+            // Use the new limits read from the config
+            while (!remainingBlocks.isEmpty() && processedThisTick < this.maxBlocksPerTick) {
+                // Check time limit safeguard
+                if (System.nanoTime() - startTickTime > this.maxNanosPerTick) {
+                    if(debug) logger.warning("[Dbg][" + enchantName + " Task] Tick time limit (" + (this.maxNanosPerTick/1_000_000.0) + "ms) exceeded for " + player.getName() + ". Processed: " + processedThisTick +". Remaining: " + remainingBlocks.size());
                     break;
                 }
 

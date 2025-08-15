@@ -479,6 +479,7 @@ public class EnchantmentWrapper {
         result = result.replace("%pickaxe_level_required%", String.valueOf(this.pickaxeLevelRequired));
         // --- End Basic Info ---
 
+
         // --- Cost Placeholder ---
         if (result.contains("%cost%")) {
             String costDisplayValue;
@@ -520,9 +521,28 @@ public class EnchantmentWrapper {
         // --- End Description ---
 
 
+
+
         // --- Placeholders Based on 'Settings' ---
         if (customSettings != null) {
             int levelFactor = Math.max(0, currentEnchantLevel > 0 ? currentEnchantLevel - 1 : 0); // Steps taken
+
+            if (result.contains("%burst_count%")) {
+                int base = customSettings.getInt("BurstCountBase", 0);
+                int increase = customSettings.getInt("BurstCountIncreasePerLevel", 0);
+                result = result.replace("%burst_count%", String.valueOf(base + (increase * levelFactor)));
+
+            }
+
+            if (result.contains("%gems_per_block%")) {
+                int base = customSettings.getInt("GemsPerBlockBase", 0);
+                int increase = customSettings.getInt("GemsPerBlockIncreasePerLevel", 0);
+                result = result.replace("%gems_per_block%", String.valueOf(base + (increase * levelFactor)));
+            }
+
+            if (result.contains("%burst_radius%")) {
+                result = result.replace("%burst_radius%", customSettings.getString("BurstRadius", "0"));
+            }
 
             // Chance (Formatted as percentage)
             if (result.contains("%chance%")) {
@@ -652,6 +672,9 @@ public class EnchantmentWrapper {
             case "%description%":
             case "%description_multiline%": // Example if added
             case "%enchant_name%":
+            case "%burst_count%":
+            case "%burst_radius%":
+            case "%gems_per_block%":
                 return true;
             default:
                 return false;

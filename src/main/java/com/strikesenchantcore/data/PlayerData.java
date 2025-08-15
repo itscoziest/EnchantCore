@@ -12,6 +12,7 @@ public class PlayerData {
     private int pickaxeLevel;
     private long blocksMined;
     private long tokens;
+    private long gems;
 
     long blockBoosterEndTime = 0L;
     double blockBoosterMultiplier = 1.0;
@@ -27,6 +28,7 @@ public class PlayerData {
         this.setPickaxeLevel(initialLevel);
         this.setBlocksMined(initialBlocksMined);
         this.tokens = 0L;
+        this.gems = 0L;
         this.showEnchantMessages = true;
         this.showEnchantSounds = true;
         this.showEnchantAnimations = true; // ADDED
@@ -153,4 +155,35 @@ public class PlayerData {
                 ", boosterActive=" + isBlockBoosterActive() +
                 '}';
     }
+
+
+    // --- Gem Methods ---
+    public long getGems() { return gems; }
+    public void setGems(long amount) { this.gems = Math.max(0L, amount); }
+
+    public boolean hasEnoughGems(double amount) {
+        return this.gems >= Math.ceil(amount);
+    }
+
+    public boolean removeGems(double amount) {
+        long amountToRemove = (long) Math.ceil(amount);
+        if (amountToRemove <= 0) return true;
+        if (this.gems >= amountToRemove) {
+            this.gems -= amountToRemove;
+            return true;
+        }
+        return false;
+    }
+
+    public void addGems(long amount) {
+        if (amount > 0) {
+            if (this.gems > Long.MAX_VALUE - amount) {
+                this.gems = Long.MAX_VALUE;
+            } else {
+                this.gems += amount;
+            }
+        }
+    }
+
+
 }
