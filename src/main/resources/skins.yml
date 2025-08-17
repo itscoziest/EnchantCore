@@ -1,0 +1,212 @@
+# ================================
+# EnchantCore - Pickaxe Skins Configuration
+# ================================
+# Configure custom pickaxe skins with different materials, model data, and permissions
+# Players can unlock skins through permissions and apply them to their pickaxes
+# The skin system preserves all enchantments and pickaxe data
+
+# GUI Configuration
+# GUI Configuration
+gui:
+  title: "&6&lPickaxe Skins"
+  size: 54  # Must be a multiple of 9 (9, 18, 27, 36, 45, 54)
+
+  # Filler item for empty slots
+  filler:
+    enabled: true
+    material: GRAY_STAINED_GLASS_PANE
+    name: "&7"
+    custom-model-data: 0
+
+  # Back button configuration
+  back-button:
+    slot: 45  # Bottom left corner
+    material: ARROW
+    name: "&c&lBack"
+    lore:
+      - "&7Click to return to"
+      - "&7the enchant menu"
+    custom-model-data: 0
+
+# Pickaxe Skins
+skins:
+  # Note: No "default" skin here - the default appearance comes from pickaxe.yml configuration
+
+  # Cyber Set Skins (Row 1: slots 10-16)
+  cyber_blue:
+    enabled: true
+    slot: 10
+    material: NETHERITE_PICKAXE
+    itemsadder-id: "cyber_set:cyber_blue_pickaxe"
+    custom-model-data: 200005
+    name: "&9&lCyber Blue"
+    lore:
+      - "&7A cool blue cyber pickaxe"
+      - "&8Ice-cold efficiency"
+    permission: "enchantcore.skin.cyber_blue"
+
+  cyber_green:
+    enabled: true
+    slot: 11
+    material: NETHERITE_PICKAXE
+    itemsadder-id: "cyber_set:cyber_green_pickaxe"
+    custom-model-data: 22
+    name: "&a&lCyber Green"
+    lore:
+      - "&7A sleek green cyber pickaxe"
+      - "&8Eco-friendly tech design"
+    permission: "enchantcore.skin.cyber_green"
+
+  cyber_orange:
+    enabled: true
+    slot: 12
+    material: NETHERITE_PICKAXE
+    itemsadder-id: "cyber_set:cyber_orange_pickaxe"
+    custom-model-data: 8
+    name: "&6&lCyber Orange"
+    lore:
+      - "&7A vibrant orange cyber pickaxe"
+      - "&8Advanced mining technology"
+    permission: "enchantcore.skin.cyber_orange"
+
+  cyber_original:
+    enabled: true
+    slot: 13
+    material: NETHERITE_PICKAXE
+    itemsadder-id: "cyber_set:cyber_original_pickaxe"
+    custom-model-data: 28
+    name: "&f&lCyber Original"
+    lore:
+      - "&7The original cyber design"
+      - "&8Classic tech appearance"
+    permission: "enchantcore.skin.cyber_original"
+
+  cyber_pink:
+    enabled: true
+    slot: 14
+    material: NETHERITE_PICKAXE
+    itemsadder-id: "cyber_set:cyber_pink_pickaxe"
+    custom-model-data: 30
+    name: "&d&lCyber Pink"
+    lore:
+      - "&7A stylish pink cyber pickaxe"
+      - "&8Fashion meets function"
+    permission: "enchantcore.skin.cyber_pink"
+
+  cyber_purple:
+    enabled: true
+    slot: 15
+    material: NETHERITE_PICKAXE
+    itemsadder-id: "cyber_set:cyber_purple_pickaxe"
+    custom-model-data: 20
+    name: "&d&lCyber Purple"
+    lore:
+      - "&7A futuristic purple cyber pickaxe"
+      - "&8High-tech mining tool"
+    permission: "enchantcore.skin.cyber_purple"
+
+  cyber_red:
+    enabled: true
+    slot: 16
+    material: NETHERITE_PICKAXE
+    itemsadder-id: "cyber_set:cyber_red_pickaxe"
+    custom-model-data: 26
+    name: "&c&lCyber Red"
+    lore:
+      - "&7A powerful red cyber pickaxe"
+      - "&8Aggressive mining force"
+    permission: "enchantcore.skin.cyber_red"
+
+  # Holiday Skins (Row 2: slots 19-25)
+  easter:
+    enabled: true
+    slot: 19
+    material: NETHERITE_PICKAXE
+    itemsadder-id: "easterset:easter_pickaxe"
+    custom-model-data: 1345007
+    name: "&e&lEaster Bunny"
+    lore:
+      - "&7Cute Easter themed pickaxe"
+      - "&8Hoppy mining!"
+    permission: "enchantcore.skin.easter"
+
+  fairy:
+    enabled: true
+    slot: 20
+    material: NETHERITE_PICKAXE
+    itemsadder-id: "fairyset:fairy_pickaxe"
+    custom-model-data: 200006
+    name: "&d&lFairy Magic"
+    lore:
+      - "&7Blessed by fairy magic"
+      - "&8Enchanted with sparkles"
+    permission: "enchantcore.skin.fairy"
+
+  killburn:
+    enabled: true
+    slot: 21
+    material: NETHERITE_PICKAXE
+    itemsadder-id: "killburn_set:killburn_pickaxe"
+    custom-model-data: 993032
+    name: "&8&lKillburn"
+    lore:
+      - "&7A dark and menacing pickaxe"
+      - "&8Burns with dark energy"
+    permission: "enchantcore.skin.killburn"
+
+  protocal:
+    enabled: true
+    slot: 22
+    material: NETHERITE_PICKAXE
+    itemsadder-id: "protocalset:protocal_pickaxe"
+    custom-model-data: 200004
+    name: "&2&lProtocal"
+    lore:
+      - "&7Military protocol pickaxe"
+      - "&8Tactical mining equipment"
+    permission: "enchantcore.skin.protocal"
+
+  valentine:
+    enabled: true
+    slot: 23
+    material: NETHERITE_PICKAXE
+    itemsadder-id: "valentineset:valentine_pickaxe"
+    custom-model-data: 200015
+    name: "&d&lValentine Love"
+    lore:
+      - "&7Romantic Valentine themed pickaxe"
+      - "&8Love is in the mines"
+    permission: "enchantcore.skin.valentine"
+
+# Messages Configuration
+messages:
+  skin-applied: "&a&lSkin Applied! &7Your pickaxe now has the %skin_name% &7skin!"
+  skin-already-selected: "&c&lAlready Selected! &7This skin is already applied to your pickaxe."
+  no-permission: "&c&lNo Permission! &7You don't have permission to use this skin."
+  error-applying: "&c&lError! &7Failed to apply the skin. Please try again."
+  pickaxe-context-lost: "&cError: Pickaxe context lost or invalid. Please reopen the menu."
+  data-load-error: "&cError: Could not load your data. Please try again."
+  internal-error: "&cAn internal error occurred processing your click."
+  skin-removed: "&a&lSkin Removed! &7Your pickaxe is back to its default appearance."
+
+# Sounds Configuration
+sounds:
+  skin-applied:
+    sound: ENTITY_PLAYER_LEVELUP
+    volume: 1.0
+    pitch: 1.2
+
+  skin-already-selected:
+    sound: ENTITY_VILLAGER_NO
+    volume: 1.0
+    pitch: 1.0
+
+  no-permission:
+    sound: ENTITY_VILLAGER_NO
+    volume: 1.0
+    pitch: 1.0
+
+  back-button:
+    sound: UI_BUTTON_CLICK
+    volume: 1.0
+    pitch: 1.0

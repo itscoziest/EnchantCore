@@ -13,6 +13,8 @@ import com.strikesenchantcore.util.VaultHook;
 import com.strikesenchantcore.util.PapiHook;
 import com.strikesenchantcore.util.WorldGuardHook;
 import com.strikesenchantcore.util.ItemsAdderUtil;
+import com.strikesenchantcore.gui.PickaxeSkinsGUIListener;
+import com.strikesenchantcore.gui.PickaxeSkinsGUI;
 
 // +++ Import for local StrikesLicenseManager (COMMENTED OUT FOR DEV) +++
 // import com.strikesenchantcore.util.StrikesLicenseManager;
@@ -51,6 +53,7 @@ public final class EnchantCore extends JavaPlugin {
     private BukkitTask passiveEffectTask;
     private BlockBreakListener blockBreakListener;
     private static final int BSTATS_PLUGIN_ID = 25927;
+    private SkinConfig skinConfig;
 
 
     // +++ License Configuration (TEMPORARILY DISABLED FOR DEVELOPMENT) +++
@@ -190,6 +193,12 @@ public final class EnchantCore extends JavaPlugin {
         this.autoSellConfig = new AutoSellConfig(this);
         this.configManager = new ConfigManager(this);
         this.itemsAdderUtil = new ItemsAdderUtil(this);
+        this.skinConfig = new SkinConfig(this);
+        this.skinConfig = new SkinConfig(this);
+// Make sure config is loaded
+        if (this.skinConfig != null) {
+            this.skinConfig.loadConfig();
+        }
 
         if (this.configManager != null) {
             log.info("Loading all configurations through ConfigManager...");
@@ -306,6 +315,7 @@ public final class EnchantCore extends JavaPlugin {
         getLogger().info("Player data saving process finished.");
 
         getLogger().info("Cleaning up resources...");
+        this.skinConfig = null;
         this.configManager = null;
         this.messageManager = null;
         this.enchantManager = null;
@@ -354,6 +364,7 @@ public final class EnchantCore extends JavaPlugin {
         pm.registerEvents(new PlayerInteractListener(this), this);
         pm.registerEvents(new PlayerJoinListener(this), this);
         pm.registerEvents(new EnchantGUIListener(this), this);
+        pm.registerEvents(new PickaxeSkinsGUIListener(this), this); // Add this line
         pm.registerEvents(new ProtectionListeners(this), this);
         pm.registerEvents(new PlayerQuitListener(this), this);
         pm.registerEvents(new PinataListener(this), this);
@@ -449,4 +460,9 @@ public final class EnchantCore extends JavaPlugin {
     @Nullable public WorldGuardHook getWorldGuardHook() { return worldGuardHook; }
     @Nullable public AutoSellConfig getAutoSellConfig() { return autoSellConfig; }
     @Nullable public MessageManager getMessageManager() { return messageManager; }
+
+    @Nullable
+    public SkinConfig getSkinConfig() {
+        return skinConfig;
+    }
 }

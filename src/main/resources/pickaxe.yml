@@ -6,11 +6,11 @@ Pickaxe:
   Name: "&b%player%'s Pickaxe &7(Level %enchantcore_level%)"
 
   # Material type (must be a valid Bukkit Material)
-  Material: DIAMOND_PICKAXE
+  Material: NETHERITE_PICKAXE
   ItemsAdder-ID: "cyber_set:cyber_purple_pickaxe"
 
   # Custom model data for resource pack models (0 to disable)
-  CustomModelData: 0
+  CustomModelData: 12
 
   # Lore displayed on the pickaxe before enchantments
   Lore:

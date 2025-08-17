@@ -71,6 +71,7 @@ public class ConfigManager {
             setup();
             // If setup fails again, config will be null/empty, defaults will be used below.
         }
+
         try {
             config.load(configFile); // Reload from disk
             logger.info("Loaded settings from config.yml.");
@@ -78,6 +79,11 @@ public class ConfigManager {
             logger.log(Level.SEVERE, "Could not reload config.yml! Using potentially stale values.", e);
             // Continue with potentially old config values if load fails, but log severity.
             // Avoid returning here, try to load other configs anyway if possible.
+        }
+
+
+        if (plugin.getSkinConfig() != null) {
+            plugin.getSkinConfig().loadConfig();
         }
 
         // --- Load Core Settings ---

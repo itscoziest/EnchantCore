@@ -563,10 +563,31 @@ public class EnchantGUI implements InventoryHolder {
             }
         }
 
-        // Check Additional Menu buttons (slots 45, 47, 51, 53) - Under development
+        // Check Additional Menu buttons (slots 45, 47, 51, 53)
         for (int additionalSlot : ADDITIONAL_MENU_SLOTS) {
             if (slot == additionalSlot) {
                 playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+
+                // Handle Pickaxe Skins (slot 45)
+                if (slot == 45) {
+                    try {
+                        // Import the new classes at the top of EnchantGUI.java:
+                        // import com.strikesenchantcore.gui.PickaxeSkinsGUI;
+                        // import com.strikesenchantcore.gui.PickaxeSkinsGUIListener;
+
+                        PickaxeSkinsGUI skinsGUI = new PickaxeSkinsGUI(plugin, player, playerData, this.pickaxe);
+                        PickaxeSkinsGUIListener.setPickaxeForSkinsGui(player.getUniqueId(), this.pickaxe);
+                        skinsGUI.open();
+                        return true;
+                    } catch (Exception e) {
+                        logger.log(Level.SEVERE, "Error opening PickaxeSkinsGUI for " + player.getName(), e);
+                        ChatUtil.sendMessage(player, "&cError opening pickaxe skins menu. Please try again.");
+                        player.closeInventory();
+                        return true;
+                    }
+                }
+
+                // Handle other additional menu buttons - still under development
                 ChatUtil.sendMessage(player, "&c&lUNDER DEVELOPMENT");
                 player.closeInventory();
                 // TODO: Open additional menus when ready

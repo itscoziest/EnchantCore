@@ -11,6 +11,7 @@ import com.strikesenchantcore.data.PlayerData;
 import com.strikesenchantcore.enchants.EnchantmentWrapper;
 import com.strikesenchantcore.enchants.EnchantRegistry;
 import com.strikesenchantcore.util.ColorUtils;
+import com.strikesenchantcore.config.SkinConfig;
 import com.strikesenchantcore.util.PDCUtil;
 import com.strikesenchantcore.util.PapiHook;
 import me.clip.placeholderapi.PlaceholderAPI; // Keep for PapiHook usage
@@ -578,10 +579,51 @@ public class PickaxeManager {
 
 
         // --- Apply Model Data ---
-        if (modelData > 0) {
-            meta.setCustomModelData(modelData);
+        NamespacedKey skinKey = new NamespacedKey(plugin, "pickaxe_skin");
+        String appliedSkinId = meta.getPersistentDataContainer().get(skinKey, PersistentDataType.STRING);
+        boolean hasSkinApplied = appliedSkinId != null;
+
+        if (hasSkinApplied) {
+            // Skin is applied - we need to restore the ItemsAdder appearance
+            // This handles cases where the server restarted and ItemsAdder data was lost
+            if (plugin.getSkinConfig() != null) {
+                SkinConfig.SkinData skinData = plugin.getSkinConfig().getSkin(appliedSkinId);
+                if (skinData != null) {
+                    // Recreate the ItemsAdder item to get the correct custom model data
+                    ItemStack freshSkinItem;
+                    if (skinData.hasItemsAdderID()) {
+                        freshSkinItem = plugin.getItemsAdderUtil().createItemStack(
+                                skinData.getMaterial().name(),
+                                skinData.getItemsAdderID()
+                        );
+                        if (freshSkinItem != null) {
+                            ItemMeta freshMeta = freshSkinItem.getItemMeta();
+                            if (freshMeta != null && freshMeta.hasCustomModelData()) {
+                                // Apply the correct custom model data from ItemsAdder
+                                meta.setCustomModelData(freshMeta.getCustomModelData());
+                                // Also ensure the material type is correct
+                                pickaxe.setType(freshSkinItem.getType());
+                                if (plugin.getConfigManager().isDebugMode()) {
+                                    logger.info("DEBUG: Restored skin " + appliedSkinId + " with custom model data: " + freshMeta.getCustomModelData());
+                                }
+                            }
+                        }
+                    } else if (skinData.getCustomModelData() > 0) {
+                        // Vanilla custom model data
+                        meta.setCustomModelData(skinData.getCustomModelData());
+                    }
+                } else {
+                    logger.warning("Applied skin '" + appliedSkinId + "' not found in skins.yml - removing skin data");
+                    meta.getPersistentDataContainer().remove(skinKey);
+                }
+            }
         } else {
-            if (meta.hasCustomModelData()) meta.setCustomModelData(null); // Remove if 0 or less
+            // No skin applied, use the default custom model data from config
+            if (modelData > 0) {
+                meta.setCustomModelData(modelData);
+            } else {
+                if (meta.hasCustomModelData()) meta.setCustomModelData(null); // Remove if 0 or less
+            }
         }
         // --- End Model Data ---
 
