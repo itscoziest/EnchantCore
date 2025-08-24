@@ -15,6 +15,7 @@ import com.strikesenchantcore.util.WorldGuardHook;
 import com.strikesenchantcore.util.ItemsAdderUtil;
 import com.strikesenchantcore.gui.PickaxeSkinsGUIListener;
 import com.strikesenchantcore.gui.PickaxeSkinsGUI;
+import com.strikesenchantcore.managers.BlackholeManager;
 
 // +++ Import for local StrikesLicenseManager (COMMENTED OUT FOR DEV) +++
 // import com.strikesenchantcore.util.StrikesLicenseManager;
@@ -54,6 +55,7 @@ public final class EnchantCore extends JavaPlugin {
     private BlockBreakListener blockBreakListener;
     private static final int BSTATS_PLUGIN_ID = 25927;
     private SkinConfig skinConfig;
+    private BlackholeManager blackholeManager;
 
 
     // +++ License Configuration (TEMPORARILY DISABLED FOR DEVELOPMENT) +++
@@ -195,6 +197,7 @@ public final class EnchantCore extends JavaPlugin {
         this.itemsAdderUtil = new ItemsAdderUtil(this);
         this.skinConfig = new SkinConfig(this);
         this.skinConfig = new SkinConfig(this);
+        this.blackholeManager = new BlackholeManager(this);
 // Make sure config is loaded
         if (this.skinConfig != null) {
             this.skinConfig.loadConfig();
@@ -302,6 +305,12 @@ public final class EnchantCore extends JavaPlugin {
         getLogger().info("Nuke cleanup finished.");
 
         getLogger().info("Saving player data...");
+
+
+        if (blackholeManager != null) {
+            blackholeManager.cleanupAllBlackholes();
+        }
+
         if (playerDataManager != null) {
             try {
                 playerDataManager.stopAutoSaveTask();
@@ -329,9 +338,11 @@ public final class EnchantCore extends JavaPlugin {
         this.worldGuardHook = null;
         this.passiveEffectTask = null;
         this.blockBreakListener = null;
+        this.blackholeManager = null;
         instance = null;
         getLogger().info("Cleanup complete.");
         getLogger().info("=== EnchantCore Disabled ===");
+
     }
 
     private void registerListeners() {
@@ -460,6 +471,9 @@ public final class EnchantCore extends JavaPlugin {
     @Nullable public WorldGuardHook getWorldGuardHook() { return worldGuardHook; }
     @Nullable public AutoSellConfig getAutoSellConfig() { return autoSellConfig; }
     @Nullable public MessageManager getMessageManager() { return messageManager; }
+    public BlackholeManager getBlackholeManager() {
+        return blackholeManager;
+    }
 
     @Nullable
     public SkinConfig getSkinConfig() {

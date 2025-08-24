@@ -30,6 +30,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.ExplosionPrimeEvent;
+import com.strikesenchantcore.managers.BlackholeManager;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -73,6 +74,8 @@ public class BlockBreakListener implements Listener {
     public static final Set<UUID> nukeActivePlayers = ConcurrentHashMap.newKeySet();
     public final Map<UUID, BossBar> activeNukeBossBars = new ConcurrentHashMap<>();
     private static final Set<UUID> activeBlackholePlayers = ConcurrentHashMap.newKeySet();
+    private static final Set<Location> activeBlackholeSpheres = ConcurrentHashMap.newKeySet();
+    private static final Map<Location, Map<Location, BlockData>> sphereBlockData = new ConcurrentHashMap<>();
 
     private enum ProcessResult { SOLD, PICKED_UP, COUNTED, IGNORED, FAILED }
     private static class AutoSellSummary { double totalValue=0.0; long totalItems=0L; long rawBlocksSold=0L; }
@@ -152,6 +155,11 @@ public class BlockBreakListener implements Listener {
         }
 
         activeBlackholePlayers.add(playerUUID);
+
+        BlackholeManager blackholeManager = plugin.getBlackholeManager();
+        if (blackholeManager != null) {
+            blackholeManager.registerBlackhole(vortexCenter, 4);
+        }
 
         if (playerData.isShowEnchantMessages()) {
             String msg = settings.getString("ActivationMessage", "&5&lBLACKHOLE! &dVortex created above - %blocks_count% blocks will be consumed!");
@@ -255,6 +263,11 @@ public class BlockBreakListener implements Listener {
         private void createBlackholeSphere() {
             World world = vortexCenter.getWorld();
             if (world == null) return;
+
+            // Register sphere with cleanup system
+            activeBlackholeSpheres.add(vortexCenter.clone());
+            Map<Location, BlockData> sphereData = new HashMap<>();
+
             int radius = 4;
             for (int x = -radius; x <= radius; x++) {
                 for (int y = -radius; y <= radius; y++) {
@@ -263,13 +276,17 @@ public class BlockBreakListener implements Listener {
                             Location loc = vortexCenter.clone().add(x, y, z);
                             Block block = loc.getBlock();
                             if (block.getType().isAir() || block.isLiquid()) {
-                                originalSphereBlocks.put(loc.clone(), block.getBlockData());
+                                sphereData.put(loc.clone(), block.getBlockData());
                                 block.setType(Material.COAL_BLOCK, false);
                             }
                         }
                     }
                 }
             }
+
+            // FIXED: Move these lines OUTSIDE the loop
+            sphereBlockData.put(vortexCenter.clone(), sphereData);
+            originalSphereBlocks.putAll(sphereData);
         }
 
         private void removeBlackholeSphere() {
@@ -277,6 +294,8 @@ public class BlockBreakListener implements Listener {
                 entry.getKey().getBlock().setBlockData(entry.getValue(), false);
             }
             originalSphereBlocks.clear();
+            activeBlackholeSpheres.remove(vortexCenter);
+            sphereBlockData.remove(vortexCenter);
         }
 
         private void createVortexParticles() {
@@ -346,6 +365,10 @@ public class BlockBreakListener implements Listener {
 
         private void cleanup() {
             if (activeBlackholePlayers.remove(playerUUID)) {
+                BlackholeManager blackholeManager = plugin.getBlackholeManager();
+                if (blackholeManager != null) {
+                    blackholeManager.removeBlackholeByLocation(vortexCenter);
+                }
                 activeBlocks.forEach(SmoothArmorStandBlock::remove);
                 activeBlocks.clear();
                 removeBlackholeSphere();
@@ -551,17 +574,46 @@ public class BlockBreakListener implements Listener {
 
 
     public void cleanupBlackholeStands() {
-        int removedCount = 0;
+        int removedArmorStands = 0;
+        int removedSpheres = 0;
+
+        // Clean up armor stands
         for (World world : Bukkit.getWorlds()) {
             for (Entity entity : world.getEntities()) {
                 if (entity instanceof ArmorStand && entity.getPersistentDataContainer().has(BLACKHOLE_ARMOR_STAND_KEY, PersistentDataType.BYTE)) {
                     entity.remove();
-                    removedCount++;
+                    removedArmorStands++;
                 }
             }
         }
-        if (removedCount > 0) {
-            logger.info("[Blackhole Cleanup] Removed " + removedCount + " stray blackhole armor stands on shutdown.");
+
+        // Clean up coal block spheres
+        for (Map.Entry<Location, Map<Location, BlockData>> sphereEntry : sphereBlockData.entrySet()) {
+            Map<Location, BlockData> blocks = sphereEntry.getValue();
+            for (Map.Entry<Location, BlockData> blockEntry : blocks.entrySet()) {
+                Location loc = blockEntry.getKey();
+                BlockData originalData = blockEntry.getValue();
+
+                // Ensure world is loaded
+                if (loc.getWorld() == null) continue;
+
+                Block block = loc.getBlock();
+
+                // Only restore if it's still a coal block (our sphere)
+                if (block.getType() == Material.COAL_BLOCK) {
+                    block.setBlockData(originalData, false);
+                    removedSpheres++;
+                }
+            }
+        }
+
+        // Clear tracking data
+        activeBlackholeSpheres.clear();
+        sphereBlockData.clear();
+        activeBlackholePlayers.clear();
+
+        if (removedArmorStands > 0 || removedSpheres > 0) {
+            logger.info("[Blackhole Cleanup] Removed " + removedArmorStands + " armor stands and restored " + removedSpheres + " sphere blocks on shutdown.");
         }
     }
 
@@ -1797,9 +1849,9 @@ public class BlockBreakListener implements Listener {
         int cX = center.getBlockX(); int cY = center.getBlockY(); int cZ = center.getBlockZ();
         final double radiusSquared = (double) radius * radius + 0.01;
 
-        for (int x = cX - radius; x <= cX + radius; x++) {
-            for (int y = cY - radius; y <= cY + radius; y++) {
-                if (y < w.getMinHeight() || y >= w.getMaxHeight()) continue;
+        for (int y = cY + radius; y >= cY - radius; y--) {  // Top to bottom
+            if (y < w.getMinHeight() || y >= w.getMaxHeight()) continue;
+            for (int x = cX - radius; x <= cX + radius; x++) {
                 for (int z = cZ - radius; z <= cZ + radius; z++) {
                     double distSq = square(x - cX) + square(y - cY) + square(z - cZ);
                     if (distSq <= radiusSquared) {
