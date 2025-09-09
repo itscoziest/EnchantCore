@@ -62,17 +62,14 @@ public class EnchantGUI implements InventoryHolder {
     // --- End Cached Managers ---
 
     // Menu button slots
-    private static final int[] MAIN_MENU_SLOTS = {0, 1, 2}; // Main enchants (current implementation)
-    private static final int[] GENS_MENU_SLOTS = {3, 4, 5}; // Gens enchants (future)
+    private static final int[] TOKEN_MENU_SLOTS = {0, 1, 2}; // Main enchants (current implementation)
+    private static final int[] GEMS_MENU_SLOTS = {3, 4, 5}; // Gems enchants (future)
     private static final int[] REBIRTH_MENU_SLOTS = {6, 7, 8}; // Rebirth enchants (future)
     private static final int[] ADDITIONAL_MENU_SLOTS = {45, 47, 51, 53}; // Additional menus (future)
 
     // Changed: Now using the close button slot for the info item
     private int getInfoItemSlot() {
-        int slot = inventory.getSize() - 5;
-        if (inventory.getSize() <= 9 && slot < 0) slot = inventory.getSize() - 1;
-        if (slot < 0 || slot >= inventory.getSize()) slot = inventory.getSize() - 1;
-        return slot;
+        return 49; // Keep it fixed at slot 49
     }
 
     public EnchantGUI(@NotNull EnchantCore plugin, @NotNull Player player, @NotNull PlayerData playerData, @NotNull ItemStack pickaxe) {
@@ -122,24 +119,25 @@ public class EnchantGUI implements InventoryHolder {
             return;
         }
 
-        fillBackground(); // Fill empty slots first
-        addMenuButtons(); // Add menu navigation buttons
+        fillBackground(); // This can be removed/commented out if you don't want a background
+        addMenuButtons();
 
         Map<String, Integer> currentEnchantsOnPickaxe = pickaxeManager.getAllEnchantLevels(this.pickaxe);
         int currentPickaxeLevel = PDCUtil.getPickaxeLevel(this.pickaxe);
-        ConfigManager.CurrencyType currency = configManager.getCurrencyType();
 
         for (EnchantmentWrapper enchant : enchantRegistry.getAllEnchants()) {
-            if (!enchant.isEnabled()) continue;
+            // This is the key change: It skips Gem enchants
+            if (!enchant.isEnabled() || enchant.getCurrencyType() == ConfigManager.CurrencyType.GEMS) {
+                continue;
+            }
 
             int slot = enchant.getInGuiSlot();
             if (slot >= 0 && slot < inventory.getSize() && !isMenuButtonSlot(slot)) {
                 try {
                     int currentLevelOfThisEnchant = currentEnchantsOnPickaxe.getOrDefault(enchant.getRawName().toLowerCase(), 0);
-                    inventory.setItem(slot, enchant.createGuiItem(currentLevelOfThisEnchant, currentPickaxeLevel, currency, vaultHook));
+                    inventory.setItem(slot, enchant.createGuiItem(currentLevelOfThisEnchant, currentPickaxeLevel, enchant.getCurrencyType(), vaultHook));
                 } catch (Exception e) {
                     logger.log(Level.SEVERE, "Error creating GUI item for enchant " + enchant.getRawName() + " for player " + player.getName(), e);
-                    inventory.setItem(slot, createGuiItemHelper(Material.BARRIER, "&cLoad Error", List.of("&7" + enchant.getRawName()), 0, false));
                 }
             }
         }
@@ -151,46 +149,43 @@ public class EnchantGUI implements InventoryHolder {
      * Adds menu navigation buttons to the GUI.
      */
     private void addMenuButtons() {
-        // Main enchants menu buttons (slots 0, 1, 2) - Under development
-        for (int slot : MAIN_MENU_SLOTS) {
+        // Main enchants menu buttons (slots 0, 1, 2)
+        for (int slot : TOKEN_MENU_SLOTS) { // Renamed from MAIN_MENU_SLOTS for clarity
             ItemStack mainButton = createGuiItemHelper(Material.BARRIER, "&c&lToken Enchants",
                     List.of("&7Click to view main enchants", "&c&lUNDER DEVELOPMENT"), 0, false);
             inventory.setItem(slot, mainButton);
         }
 
-        // Gens enchants menu buttons (slots 3, 4, 5) - Under development
-        for (int slot : GENS_MENU_SLOTS) {
-            ItemStack gensButton = createGuiItemHelper(Material.BARRIER, "&c&lGens Enchants",
-                    List.of("&7Click to view gens enchants", "&c&lUNDER DEVELOPMENT"), 0, false);
-            inventory.setItem(slot, gensButton);
+        // Gems/Gems enchants menu buttons (slots 3, 4, 5)
+        for (int slot : GEMS_MENU_SLOTS) { // Renamed from GEMS_MENU_SLOTS for clarity
+            ItemStack gemsButton = createGuiItemHelper(Material.BARRIER, "&c&lGems Enchants",
+                    List.of("&7Click to view gems enchants", "&c&lUNDER DEVELOPMENT"), 0, false);
+            inventory.setItem(slot, gemsButton);
         }
 
-        // Rebirth enchants menu buttons (slots 6, 7, 8) - Under development
+        // Rebirth enchants menu buttons (slots 6, 7, 8)
         for (int slot : REBIRTH_MENU_SLOTS) {
             ItemStack rebirthButton = createGuiItemHelper(Material.BARRIER, "&d&lRebirth Enchants",
                     List.of("&7Click to view rebirth enchants", "&c&lUNDER DEVELOPMENT"), 0, false);
             inventory.setItem(slot, rebirthButton);
         }
 
-        // Additional menu buttons with specific titles
+        // --- RESTORED: Additional menu buttons at the bottom ---
         if (45 < inventory.getSize()) {
             ItemStack pickaxeSkinsButton = createGuiItemHelper(Material.BARRIER, "&6&lPickaxe Skins",
-                    List.of("&7Click to view pickaxe skins", "&c&lUNDER DEVELOPMENT"), 0, false);
+                    List.of("&7Click to view pickaxe skins"), 0, false);
             inventory.setItem(45, pickaxeSkinsButton);
         }
-
         if (47 < inventory.getSize()) {
             ItemStack mortarButton = createGuiItemHelper(Material.BARRIER, "&6&lMortar",
                     List.of("&7Click to view mortar options", "&c&lUNDER DEVELOPMENT"), 0, false);
             inventory.setItem(47, mortarButton);
         }
-
         if (51 < inventory.getSize()) {
             ItemStack crystalsButton = createGuiItemHelper(Material.BARRIER, "&6&lCrystals",
                     List.of("&7Click to view crystals", "&c&lUNDER DEVELOPMENT"), 0, false);
             inventory.setItem(51, crystalsButton);
         }
-
         if (53 < inventory.getSize()) {
             ItemStack attachmentsButton = createGuiItemHelper(Material.BARRIER, "&6&lAttachments",
                     List.of("&7Click to view attachments", "&c&lUNDER DEVELOPMENT"), 0, false);
@@ -202,19 +197,8 @@ public class EnchantGUI implements InventoryHolder {
      * Checks if a slot is used for menu buttons.
      */
     private boolean isMenuButtonSlot(int slot) {
-        for (int menuSlot : MAIN_MENU_SLOTS) {
-            if (slot == menuSlot) return true;
-        }
-        for (int menuSlot : GENS_MENU_SLOTS) {
-            if (slot == menuSlot) return true;
-        }
-        for (int menuSlot : REBIRTH_MENU_SLOTS) {
-            if (slot == menuSlot) return true;
-        }
-        for (int menuSlot : ADDITIONAL_MENU_SLOTS) {
-            if (slot == menuSlot) return true;
-        }
-        return false;
+        // This corrected version includes ALL of your menu buttons
+        return (slot >= 0 && slot <= 8) || slot == 45 || slot == 47 || slot == 51 || slot == 53;
     }
 
     /**
@@ -302,42 +286,31 @@ public class EnchantGUI implements InventoryHolder {
      * @param clickType     The type of click performed.
      */
     public void handleClick(Player player, int slot, @Nullable ItemStack clickedItem, @Nullable ItemStack pickaxeContext, ClickType clickType) {
-        final boolean debug = configManager.isDebugMode();
+        // --- ADDED: Handles menu clicks first ---
+        if (handleMenuButtonClick(player, slot)) {
+            return;
+        }
+        // --- END ADDED ---
 
-        // --- Initial Validation ---
+        // --- YOUR ORIGINAL PURCHASE LOGIC (RESTORED) ---
+        final boolean debug = configManager.isDebugMode();
         if (pickaxeContext == null || pickaxeContext.getType() == Material.AIR || !PDCUtil.isEnchantCorePickaxe(pickaxeContext)) {
             ChatUtil.sendMessage(player, "&cError: Pickaxe context lost or invalid. Please reopen the menu.");
             player.closeInventory();
             logger.warning("handleClick called for " + player.getName() + " but pickaxeContext was null, AIR, or not an EC Pickaxe.");
             return;
         }
-
-        // Handle menu button clicks
-        if (handleMenuButtonClick(player, slot)) {
-            return; // Menu button was clicked, stop processing
-        }
-
-        // *** Use CORRECT getter name and translate color ***
         String translatedFillerName = ColorUtils.translateColors(enchantManager.getGuiFillerNameFormat());
         if (clickedItem == null || clickedItem.getType() == Material.AIR ||
                 (enchantManager.isGuiFillEmptySlots() &&
                         clickedItem.getType() == enchantManager.getGuiFillerMaterial() &&
                         clickedItem.hasItemMeta() && clickedItem.getItemMeta().hasDisplayName() &&
-                        Objects.equals(clickedItem.getItemMeta().getDisplayName(), translatedFillerName))) { // Compare translated name
-            if (debug) logger.finest("handleClick: Clicked empty/filler slot.");
+                        Objects.equals(clickedItem.getItemMeta().getDisplayName(), translatedFillerName))) {
             return;
         }
-
-        // Changed: Check for info item slot (now in the old close button position)
         if (slot == getInfoItemSlot()) {
-            if (debug) logger.finest("handleClick: Clicked info item slot.");
             return;
         }
-
-        // --- End Initial Validation ---
-
-
-        // --- Identify Clicked Enchant ---
         EnchantmentWrapper clickedEnchant = null;
         for (EnchantmentWrapper enchant : enchantRegistry.getAllEnchants()) {
             if (enchant.getInGuiSlot() == slot) {
@@ -346,65 +319,41 @@ public class EnchantGUI implements InventoryHolder {
             }
         }
         if (clickedEnchant == null || !clickedEnchant.isEnabled()) {
-            if (debug) logger.finest("handleClick: Clicked slot " + slot + " does not correspond to a known ENABLED enchant.");
             return;
         }
         final String enchantKey = clickedEnchant.getRawName();
-        if (debug) logger.info("handleClick: Player " + player.getName() + " clicked on enchant: " + enchantKey + ", Slot: " + slot + ", ClickType: " + clickType);
-        // --- End Identify Enchant ---
-
-
-        // --- Determine Levels to Add ---
         int levelsToAdd;
         switch (clickType) {
-            case LEFT:          levelsToAdd = 1; break;
-            case RIGHT:         levelsToAdd = 10; break;
-            case SHIFT_RIGHT:   levelsToAdd = 50; break;
-            default:
-                if (debug) logger.finest("handleClick: Ignored irrelevant click type: " + clickType);
-                return;
+            case LEFT: levelsToAdd = 1; break;
+            case RIGHT: levelsToAdd = 10; break;
+            case SHIFT_RIGHT: levelsToAdd = 50; break;
+            default: return;
         }
-        // --- End Levels to Add ---
-
-
-        // --- Check Max Level & Requirements ---
         int currentLevel = pickaxeManager.getEnchantLevel(pickaxeContext, enchantKey);
         int maxEnchantLevel = clickedEnchant.getMaxLevel();
-
         if (maxEnchantLevel > 0 && currentLevel >= maxEnchantLevel) {
             ChatUtil.sendMessage(player, messageManager.getMessage("gui.max_level_reached", "&cThis enchant is already max level!"));
             playSoundEffect(player, Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             return;
         }
-
         int potentialTargetLevel = currentLevel + levelsToAdd;
         int actualTargetLevel = (maxEnchantLevel > 0) ? Math.min(potentialTargetLevel, maxEnchantLevel) : potentialTargetLevel;
         int actualLevelsBeingAdded = actualTargetLevel - currentLevel;
-
         if (actualLevelsBeingAdded <= 0) {
-            if (debug) logger.warning("handleClick: actualLevelsBeingAdded was <= 0 for " + enchantKey + " Lvl " + currentLevel + " -> " + actualTargetLevel + " (LevelsToAdd: "+levelsToAdd+")");
             ChatUtil.sendMessage(player, messageManager.getMessage("gui.max_level_reached", "&cThis enchant is already max level!"));
             playSoundEffect(player, Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             return;
         }
-
         int requiredPickLevel = clickedEnchant.getPickaxeLevelRequired();
         int currentPickLevel = PDCUtil.getPickaxeLevel(pickaxeContext);
-
         if (requiredPickLevel > 0 && currentPickLevel < requiredPickLevel) {
-            ChatUtil.sendMessage(player, messageManager.getMessage("gui.pickaxe_level_required", "&cRequires Pickaxe Level %level%!")
-                    .replace("%level%", String.valueOf(requiredPickLevel)));
+            ChatUtil.sendMessage(player, messageManager.getMessage("gui.pickaxe_level_required", "&cRequires Pickaxe Level %level%!").replace("%level%", String.valueOf(requiredPickLevel)));
             playSoundEffect(player, Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             return;
         }
-        // --- End Check Max Level & Requirements ---
-
-
-        // --- Calculate Total Cost ---
         double totalCost = 0.0;
         final int MAX_LEVEL_CALC_ITERATIONS = 2000;
         int iterations = 0;
-
         for (int i = 1; i <= actualLevelsBeingAdded; i++) {
             if (iterations++ > MAX_LEVEL_CALC_ITERATIONS) {
                 logger.severe("Cost calculation loop exceeded max iterations (" + MAX_LEVEL_CALC_ITERATIONS + ") for " + enchantKey + ". Aborting upgrade for player " + player.getName());
@@ -413,46 +362,32 @@ public class EnchantGUI implements InventoryHolder {
             }
             int levelToCalc = currentLevel + i;
             double costForThisLevel = clickedEnchant.getCostForLevel(levelToCalc);
-
             if (costForThisLevel < 0) {
                 ChatUtil.sendMessage(player, messageManager.getMessage("gui.cost_calc_error", "&cCannot calculate upgrade cost for level " + levelToCalc + "."));
                 playSoundEffect(player, Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-                if(debug) logger.warning("handleClick: getCostForLevel returned < 0 for " + enchantKey + " level " + levelToCalc);
                 return;
             }
             if (costForThisLevel > 0 && totalCost > Double.MAX_VALUE - costForThisLevel) {
                 totalCost = Double.MAX_VALUE;
-                if(debug) logger.warning("handleClick: Total cost OVERFLOWED during calculation for " + enchantKey + " at level step " + i);
                 break;
             }
             totalCost += costForThisLevel;
         }
-        if(debug) logger.info("handleClick: Calculated totalCost=" + totalCost + " for " + actualLevelsBeingAdded + " levels of " + enchantKey);
-        // --- End Calculate Total Cost ---
-
-
-        // --- Process Transaction ---
         ConfigManager.CurrencyType currency = configManager.getCurrencyType();
         boolean canAfford = false;
         boolean transactionSuccess = false;
         String formattedCostString = "";
-
         if (totalCost <= 0) {
             canAfford = true;
             transactionSuccess = true;
-            formattedCostString = (currency == ConfigManager.CurrencyType.VAULT && vaultHook != null && vaultHook.isEnabled())
-                    ? vaultHook.format(0) : "0";
-            if (debug) logger.info("handleClick: Upgrade is free for " + enchantKey);
+            formattedCostString = (currency == ConfigManager.CurrencyType.VAULT && vaultHook != null && vaultHook.isEnabled()) ? vaultHook.format(0) : "0";
         } else if (currency == ConfigManager.CurrencyType.TOKENS) {
             formattedCostString = NumberFormat.getNumberInstance(Locale.US).format((long)Math.ceil(totalCost));
             if (playerData != null && playerData.hasEnoughTokens(totalCost)) {
                 canAfford = true;
                 if (playerData.removeTokens(totalCost)) {
                     transactionSuccess = true;
-                    playerDataManager.savePlayerData(playerData, true);
-                    if (debug) logger.info("handleClick: Removed " + formattedCostString + " tokens from " + player.getName());
-                } else {
-                    if(debug) logger.warning("handleClick: removeTokens failed even after hasEnoughTokens passed for " + player.getName());
+                    plugin.getPlayerDataManager().savePlayerData(playerData, true);
                 }
             }
         } else { // VAULT
@@ -460,12 +395,7 @@ public class EnchantGUI implements InventoryHolder {
                 formattedCostString = vaultHook.format(totalCost);
                 if (vaultHook.hasEnough(player, totalCost)) {
                     canAfford = true;
-                    if (vaultHook.withdraw(player, totalCost)) {
-                        transactionSuccess = true;
-                        if (debug) logger.info("handleClick: Withdrew " + formattedCostString + " via Vault from " + player.getName());
-                    } else {
-                        if(debug) logger.warning("handleClick: vaultHook.withdraw failed for " + player.getName());
-                    }
+                    transactionSuccess = vaultHook.withdraw(player, totalCost);
                 }
             } else {
                 ChatUtil.sendMessage(player, messageManager.getMessage("gui.vault_unavailable", "&cVault economy not available."));
@@ -473,129 +403,74 @@ public class EnchantGUI implements InventoryHolder {
                 return;
             }
         }
-
         if (!canAfford && totalCost > 0) {
-            String currencyName = (currency == ConfigManager.CurrencyType.TOKENS) ? messageManager.getMessage("currency.tokens_name_plural", "Tokens") : "";
-            String msgFormat = (currency == ConfigManager.CurrencyType.TOKENS)
-                    ? messageManager.getMessage("gui.not_enough_tokens", "&cNot enough Tokens! Cost: &e%cost% Tokens")
-                    : messageManager.getMessage("gui.not_enough_money", "&cNot enough Money! Cost: &e%cost%");
+            String msgFormat = (currency == ConfigManager.CurrencyType.TOKENS) ? messageManager.getMessage("gui.not_enough_tokens", "&cNot enough Tokens! Cost: &e%cost% Tokens") : messageManager.getMessage("gui.not_enough_money", "&cNot enough Money! Cost: &e%cost%");
             ChatUtil.sendMessage(player, msgFormat.replace("%cost%", formattedCostString));
             playSoundEffect(player, Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             return;
         }
-
         if (!transactionSuccess && totalCost > 0) {
             ChatUtil.sendMessage(player, messageManager.getMessage("gui.transaction_error", "&cUpgrade failed! Transaction error."));
             playSoundEffect(player, Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-            if(debug) logger.warning("handleClick: Transaction failed despite canAfford being true for " + player.getName() + " upgrading " + enchantKey);
             return;
         }
-        // --- End Process Transaction ---
-
-
-        // --- Apply Upgrade & Update GUI ---
         if (transactionSuccess) {
             if (!pickaxeManager.setEnchantLevel(pickaxeContext, enchantKey, actualTargetLevel)) {
                 logger.severe("Failed to set PDC enchant level for " + enchantKey + " on " + player.getName() + "'s pickaxe after successful transaction!");
                 ChatUtil.sendMessage(player, "&cCritical error applying upgrade! Please contact an admin.");
                 return;
             }
-
             pickaxeManager.updatePickaxe(pickaxeContext, player);
-
             int updatedPickLevel = PDCUtil.getPickaxeLevel(pickaxeContext);
             ItemStack updatedGuiItem = clickedEnchant.createGuiItem(actualTargetLevel, updatedPickLevel, currency, vaultHook);
             inventory.setItem(slot, updatedGuiItem);
-
             addInfoItem();
-
-            String msgFormatKey = (actualLevelsBeingAdded == 1)
-                    ? (currency == ConfigManager.CurrencyType.TOKENS ? "gui.upgrade_success_tokens" : "gui.upgrade_success_vault")
-                    : (currency == ConfigManager.CurrencyType.TOKENS ? "gui.upgrade_multiple_success_tokens" : "gui.upgrade_multiple_success_vault");
+            String msgFormatKey = (actualLevelsBeingAdded == 1) ? (currency == ConfigManager.CurrencyType.TOKENS ? "gui.upgrade_success_tokens" : "gui.upgrade_success_vault") : (currency == ConfigManager.CurrencyType.TOKENS ? "gui.upgrade_multiple_success_tokens" : "gui.upgrade_multiple_success_vault");
             String defaultMsg = "&aUpgraded %enchant%!";
-
-            ChatUtil.sendMessage(player, messageManager.getMessage(msgFormatKey, defaultMsg)
-                    .replace("%enchant%", clickedEnchant.getDisplayName())
-                    .replace("%levels_added%", String.valueOf(actualLevelsBeingAdded))
-                    .replace("%level%", String.valueOf(actualTargetLevel))
-                    .replace("%cost%", formattedCostString));
+            ChatUtil.sendMessage(player, messageManager.getMessage(msgFormatKey, defaultMsg).replace("%enchant%", clickedEnchant.getDisplayName()).replace("%levels_added%", String.valueOf(actualLevelsBeingAdded)).replace("%level%", String.valueOf(actualTargetLevel)).replace("%cost%", formattedCostString));
             playSoundEffect(player, Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.2f);
-            if(debug) logger.info("handleClick: Successfully upgraded " + enchantKey + " to " + actualTargetLevel + " for " + player.getName());
-
         }
-        // --- End Apply Upgrade ---
     }
 
     /**
      * Handles menu button clicks and returns true if a menu button was clicked.
      */
     private boolean handleMenuButtonClick(Player player, int slot) {
-        // Check Main Menu buttons (slots 0, 1, 2) - Under development
-        for (int mainSlot : MAIN_MENU_SLOTS) {
-            if (slot == mainSlot) {
+        // Clicks the Gems Menu Button
+        for (int gemsSlot : GEMS_MENU_SLOTS) {
+            if (slot == gemsSlot) {
                 playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
-                ChatUtil.sendMessage(player, "&c&lUNDER DEVELOPMENT");
-                player.closeInventory();
-                // TODO: Open main enchants menu when ready
+                new GemsGUI(plugin, player, playerData, this.pickaxe).open();
                 return true;
             }
         }
-
-        // Check Gens Menu buttons (slots 3, 4, 5) - Under development
-        for (int gensSlot : GENS_MENU_SLOTS) {
-            if (slot == gensSlot) {
-                playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
-                ChatUtil.sendMessage(player, "&c&lUNDER DEVELOPMENT");
-                player.closeInventory();
-                // TODO: Open gens enchants menu when ready
-                return true;
-            }
-        }
-
-        // Check Rebirth Menu buttons (slots 6, 7, 8) - Under development
+        // Clicks the Rebirth Menu Button
         for (int rebirthSlot : REBIRTH_MENU_SLOTS) {
             if (slot == rebirthSlot) {
                 playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
-                ChatUtil.sendMessage(player, "&c&lUNDER DEVELOPMENT");
-                player.closeInventory();
-                // TODO: Open rebirth enchants menu when ready
+                new RebirthGUI(plugin, player, playerData, this.pickaxe).open();
                 return true;
             }
         }
 
-        // Check Additional Menu buttons (slots 45, 47, 51, 53)
-        for (int additionalSlot : ADDITIONAL_MENU_SLOTS) {
-            if (slot == additionalSlot) {
-                playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
-
-                // Handle Pickaxe Skins (slot 45)
-                if (slot == 45) {
-                    try {
-                        // Import the new classes at the top of EnchantGUI.java:
-                        // import com.strikesenchantcore.gui.PickaxeSkinsGUI;
-                        // import com.strikesenchantcore.gui.PickaxeSkinsGUIListener;
-
-                        PickaxeSkinsGUI skinsGUI = new PickaxeSkinsGUI(plugin, player, playerData, this.pickaxe);
-                        PickaxeSkinsGUIListener.setPickaxeForSkinsGui(player.getUniqueId(), this.pickaxe);
-                        skinsGUI.open();
-                        return true;
-                    } catch (Exception e) {
-                        logger.log(Level.SEVERE, "Error opening PickaxeSkinsGUI for " + player.getName(), e);
-                        ChatUtil.sendMessage(player, "&cError opening pickaxe skins menu. Please try again.");
-                        player.closeInventory();
-                        return true;
-                    }
+        // Clicks any other menu button (Tokens, Skins, etc.)
+        if (isMenuButtonSlot(slot)) {
+            playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+            if (slot == 45) { // Your original skins button logic
+                try {
+                    new PickaxeSkinsGUI(plugin, player, playerData, this.pickaxe).open();
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, "Error opening PickaxeSkinsGUI for " + player.getName(), e);
+                    ChatUtil.sendMessage(player, "&cError opening pickaxe skins menu.");
+                    player.closeInventory();
                 }
-
-                // Handle other additional menu buttons - still under development
+            } else {
+                // All other buttons send the under development message
                 ChatUtil.sendMessage(player, "&c&lUNDER DEVELOPMENT");
-                player.closeInventory();
-                // TODO: Open additional menus when ready
-                return true;
             }
+            return true;
         }
-
-        return false; // No menu button was clicked
+        return false;
     }
 
     /** Opens the GUI inventory for the player. */
@@ -667,6 +542,10 @@ public class EnchantGUI implements InventoryHolder {
                 if(configManager != null && configManager.isDebugMode()) logger.log(Level.WARNING, "Error playing sound " + sound.name() + " for " + player.getName(), e);
             }
         }
+    }
+
+    public ItemStack getPickaxe() {
+        return this.pickaxe;
     }
 
 } // End of EnchantGUI class

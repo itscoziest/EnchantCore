@@ -22,7 +22,7 @@ import java.util.logging.Logger; // Import Logger
 public class ConfigManager {
 
     // Enum for currency selection
-    public enum CurrencyType { TOKENS, VAULT }
+    public enum CurrencyType { TOKENS, VAULT, GEMS, POINTS }
 
     private final EnchantCore plugin;
     private final Logger logger; // Cache logger

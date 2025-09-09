@@ -447,6 +447,7 @@ enchants:
       - " "
   blackhole:
     Enabled: true
+    Currency: GEMS
     RawName: "blackhole"
     Name: "&5&lB&d&ll&5&la&d&lc&5&lk&d&lh&5&lo&d&ll&5&le"
     GuiName: "&5&lB&d&ll&5&la&d&lc&5&lk&d&lh&5&lo&d&ll&5&le"
@@ -490,6 +491,7 @@ enchants:
 
   lootpinata:
     Enabled: true
+    Currency: GEMS
     RawName: "lootpinata"
     Name: "&d&lL&e&lo&a&lo&b&lt &c&lP&6&li&e&ln&a&la&b&lt&d&la"
     GuiName: "&d&lLoot &ePinata"
@@ -551,6 +553,7 @@ enchants:
       - "&7Cost: &f%cost%"
   overcharge:
     Enabled: true
+    Currency: GEMS
     RawName: "overcharge"
     Name: "&c&lOvercharge"
     GuiName: "&c&lOvercharge"
@@ -587,6 +590,7 @@ enchants:
 
   jackpot:
     RawName: "jackpot"
+    Currency: GEMS
     Name: "&6&lJackpot"
     GuiName: "&6&lJackpot"
     Material: GOLD_BLOCK
@@ -619,6 +623,7 @@ enchants:
 
   # --- Dragon Burst (NEW) ---
   dragonburst:
+    Currency: GEMS
     RawName: "dragonburst"
     Name: "#5E2D79&lDragon Burst"
     GuiName: "#5E2D79&lDragon Burst"
@@ -662,6 +667,7 @@ enchants:
 
 
   frostbitefury:
+    Currency: GEMS
     RawName: "frostbitefury"
     Name: "#74B9FF&lFrostbite Fury"
     GuiName: "#74B9FF&lFrostbite Fury"
@@ -703,4 +709,80 @@ enchants:
       - "&8| &eRadius: &f%radius% Blocks"
       - "&8| &eGems per Block: &f%gems_per_block%"
       - "&8| &eChance: &f%chance%%"
+      - " "
+
+
+ #------ REBIRTH ENCHANTS NEW ---------
+
+
+
+  echo:
+    RawName: "echo"
+    Currency: POINTS
+    Name: "&b&lEcho"
+    GuiName: "&b&lEcho"
+    Material: ECHO_SHARD
+    Enabled: true
+    MaxLevel: 20
+    Cost: 100.0  # Cost in Points
+    IncreaseCostBy: 50.0 # Linear increase per level
+    CostFormula: "LINEAR"
+    PickaxeLevelRequired: 500 # Requires a high pickaxe level
+    Settings:
+      ChanceBase: 0.01 # 1% base chance
+      ChanceIncreasePerLevel: 0.005 # +0.5% chance per level
+    lore:
+      - "&7Gives a chance for your last enchant"
+      - "&7to immediately trigger a second time."
+      - " "
+      - "&3&lInfo:"
+      - "&8| &bPrice: &f%cost%"
+      - "&8| &bMax Level: &f%max_level%"
+      - "&8| &bCurrent Level: &f%current_level%"
+      - " "
+      - "&6&lAttributes:"
+      - "&8| &eChance: &f%chance%%"
+      - " "
+
+  # --- Rebirth Enchant: Mana Infusion ---
+  manainfusion:
+    RawName: "manainfusion"
+    Currency: POINTS
+    Name: "&9&lMana Infusion"
+    GuiName: "&9&lMana Infusion"
+    Material: DRAGON_BREATH
+    Enabled: true
+    MaxLevel: 10
+    Cost: 250.0 # Cost in Points
+    IncreaseCostBy: 1.5 # Exponential increase
+    CostFormula: "EXPONENTIAL"
+    PickaxeLevelRequired: 750
+    Settings:
+      # Mana Generation
+      ManaPerBlock: 1
+      MaxManaBase: 1000
+      MaxManaIncreasePerLevel: 250
+      # Active Boost
+      ManaCostToActivate: 1000 # Requires max mana at level 1
+      BoostDurationBase: 30 # in seconds
+      BoostDurationIncreasePerLevel: 5
+      BoostMultiplierBase: 1.5 # 1.5x multiplier
+      BoostMultiplierIncreasePerLevel: 0.1 # +0.1 to multiplier each level
+      # Messages
+      ActionBarCharging: "&9Mana &b[%bar%&b] &7(&b%current%&7/&3%max%&7)"
+      ActionBarReady: "&9&lMANA FULL! &7(Right-Click to Activate Boost)"
+      ActivationMessage: "&9&lMANA INFUSION! &7Token and Gem drops are boosted by &bx%multiplier% &7for &b%duration%s&7!"
+    lore:
+      - "&7Passively generate Mana while mining."
+      - "&7When your Mana bar is full, right-click"
+      - "&7to activate a temporary Token & Gem boost."
+      - " "
+      - "&3&lInfo:"
+      - "&8| &bPrice: &f%cost%"
+      - "&8| &bMax Level: &f%max_level%"
+      - "&8| &bCurrent Level: &f%current_level%"
+      - " "
+      - "&6&lAttributes:"
+      - "&8| &eMax Mana: &f%max_mana%"
+      - "&8| &eBoost: &fx%multiplier% &7for &f%duration%s"
       - " "

@@ -63,6 +63,7 @@ public class EnchantmentWrapper {
     @Nullable private ConfigurationSection customSettings; // Section for enchant-specific settings (chance, radius, etc.)
     @NotNull private NamespacedKey pdcLevelKey; // PDC key for storing this enchant's level on a pickaxe
     private EnchantType type = EnchantType.ACTIVE; // Default, determined during load
+    private ConfigManager.CurrencyType currencyType;
 
     // --- Formatting Helpers (Static Final for efficiency) ---
     // These are thread-safe and can be reused
@@ -150,6 +151,35 @@ public class EnchantmentWrapper {
         this.cost = section.getDouble("Cost", 0.0);
         this.increaseCostBy = section.getDouble("IncreaseCostBy", 0.0);
         this.pickaxeLevelRequired = Math.max(0, section.getInt("PickaxeLevelRequired", 0)); // Ensure non-negative
+
+// --- ADDED: Load the Currency type for this specific enchant ---
+        String currencyString = section.getString("Currency", null);
+        if (currencyString != null) {
+            try {
+                this.currencyType = ConfigManager.CurrencyType.valueOf(currencyString.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                logger.warning("Invalid Currency '" + currencyString + "' for enchant '" + rawName + "'. Defaulting to global setting.");
+                this.currencyType = plugin.getConfigManager().getCurrencyType(); // Fallback to global
+            }
+        } else {
+            // If 'Currency' is not set in the enchant's config, use the global default from config.yml
+            this.currencyType = plugin.getConfigManager().getCurrencyType();
+        }
+// --- END ADDED ---
+
+// Load and validate CostFormula
+        this.costFormula = section.getString("CostFormula", "LINEAR").toUpperCase();
+        if (!this.costFormula.equals("LINEAR") && !this.costFormula.equals("EXPONENTIAL")) {
+            logger.warning("Invalid CostFormula '" + section.getString("CostFormula") + "' for enchant '" + rawName + "'. Defaulting to LINEAR.");
+            this.costFormula = "LINEAR";
+        }
+// Sanity check cost values for exponential to prevent issues
+        if ("EXPONENTIAL".equals(this.costFormula) && this.increaseCostBy <= 1.0 && this.maxLevel != 1) {
+            logger.warning("Exponential enchant '" + rawName + "' has IncreaseCostBy <= 1.0 (" + this.increaseCostBy + "). This will result in non-increasing or decreasing costs! Consider using LINEAR or IncreaseCostBy > 1.0.");
+        }
+        if ("LINEAR".equals(this.costFormula) && this.increaseCostBy < 0 && this.maxLevel != 1) {
+            logger.warning("Linear enchant '" + rawName + "' has a negative IncreaseCostBy (" + this.increaseCostBy + "). Cost will decrease per level.");
+        } // Ensure non-negative
         // Load and validate CostFormula
         this.costFormula = section.getString("CostFormula", "LINEAR").toUpperCase();
         if (!this.costFormula.equals("LINEAR") && !this.costFormula.equals("EXPONENTIAL")) {
@@ -448,7 +478,7 @@ public class EnchantmentWrapper {
      * @param line                       The input string line.
      * @param currentEnchantLevel        Current level of this enchant.
      * @param costForNextPotentialLevel Cost for the next single level upgrade (-1 if maxed/error).
-     * @param currencyType               The currency being used.
+     * @param currencyType               The currency being used (legacy, now uses internal currencyType).
      * @param vaultHook                  VaultHook instance (can be null).
      * @param naText                     The string to use for "Not Applicable".
      * @param isActuallyMaxed            True if the enchant is truly at its max level.
@@ -460,7 +490,7 @@ public class EnchantmentWrapper {
             @Nullable String line,
             int currentEnchantLevel,
             double costForNextPotentialLevel,
-            ConfigManager.CurrencyType currencyType,
+            ConfigManager.CurrencyType currencyType, // This parameter is now less important but kept for compatibility
             @Nullable VaultHook vaultHook,
             @NotNull String naText, // Assumed not null
             boolean isActuallyMaxed,
@@ -480,7 +510,7 @@ public class EnchantmentWrapper {
         // --- End Basic Info ---
 
 
-        // --- Cost Placeholder ---
+        // --- Cost Placeholder (UPDATED LOGIC) ---
         if (result.contains("%cost%")) {
             String costDisplayValue;
             if (isActuallyMaxed) {
@@ -489,16 +519,27 @@ public class EnchantmentWrapper {
                 costDisplayValue = naText; // Use cached N/A text
             } else {
                 String formattedCost;
-                String currencyName = "";
-                if (currencyType == ConfigManager.CurrencyType.TOKENS) {
-                    // Use static integer formatter for tokens
-                    formattedCost = FORMAT_INTEGER.format((long) Math.ceil(costForNextPotentialLevel));
-                    currencyName = " " + messageManager.getMessage("currency.tokens_name_plural", "Tokens");
-                } else { // VAULT
-                    formattedCost = (vaultHook != null && vaultHook.isEnabled())
-                            ? vaultHook.format(costForNextPotentialLevel)
-                            : String.format(Locale.US, "%,.2f", costForNextPotentialLevel); // Fallback format if Vault fails
-                    // Currency symbol is usually included by vaultHook.format()
+                String currencyName;
+
+                // Use this enchant's specific currency type
+                ConfigManager.CurrencyType enchantCurrency = this.getCurrencyType();
+
+                switch (enchantCurrency) {
+                    case GEMS:
+                        formattedCost = FORMAT_INTEGER.format((long) Math.ceil(costForNextPotentialLevel));
+                        currencyName = " " + messageManager.getMessage("currency.gems_name_plural", "Gems");
+                        break;
+                    case TOKENS:
+                        formattedCost = FORMAT_INTEGER.format((long) Math.ceil(costForNextPotentialLevel));
+                        currencyName = " " + messageManager.getMessage("currency.tokens_name_plural", "Tokens");
+                        break;
+                    case VAULT:
+                    default:
+                        formattedCost = (vaultHook != null && vaultHook.isEnabled())
+                                ? vaultHook.format(costForNextPotentialLevel)
+                                : String.format(Locale.US, "%,.2f", costForNextPotentialLevel);
+                        currencyName = ""; // Vault format usually includes the symbol
+                        break;
                 }
                 costDisplayValue = formattedCost + currencyName;
             }
@@ -519,8 +560,6 @@ public class EnchantmentWrapper {
             result = result.replace("%description_multiline%", multiLineDesc);
         }
         // --- End Description ---
-
-
 
 
         // --- Placeholders Based on 'Settings' ---
@@ -571,35 +610,49 @@ public class EnchantmentWrapper {
             }
 
 
-
-
             // Radius (Formatted to one decimal place)
             if (result.contains("%radius%")) {
                 if (this.rawName.equalsIgnoreCase("explosive") && customSettings.contains("RadiusTier")) { // Specific logic for Explosive tiers
                     int radiusTier = customSettings.getInt("RadiusTier", 2);
-                    int actualRadius=3; switch(radiusTier){case 1:actualRadius=2;break; case 3:actualRadius=4;break; case 4:actualRadius=5;break; case 5:actualRadius=6;break;}
+                    int actualRadius = 3;
+                    switch (radiusTier) {
+                        case 1:
+                            actualRadius = 2;
+                            break;
+                        case 3:
+                            actualRadius = 4;
+                            break;
+                        case 4:
+                            actualRadius = 5;
+                            break;
+                        case 5:
+                            actualRadius = 6;
+                            break;
+                    }
                     result = result.replace("%radius%", String.valueOf(actualRadius));
                 } else if (customSettings.contains("Radius")) { // Flat radius
                     result = result.replace("%radius%", String.valueOf(customSettings.getInt("Radius")));
-                } else if (customSettings.contains("RadiusBase")){ // Scaled radius
+                } else if (customSettings.contains("RadiusBase")) { // Scaled radius
                     double radiusVal = customSettings.getDouble("RadiusBase", 0.0) + (customSettings.getDouble("RadiusIncreasePerLevel", 0.0) * levelFactor);
                     result = result.replace("%radius%", FORMAT_ONE_DECIMAL.format(radiusVal));
-                } else { result = result.replace("%radius%", naText); }
+                } else {
+                    result = result.replace("%radius%", naText);
+                }
             }
 
             // Min/Max Amounts (Formatted as integers)
             if (result.contains("%min_amount%") || result.contains("%max_amount%")) {
                 if (customSettings.contains("RewardMinBase") && customSettings.contains("RewardMaxBase")) {
-                    double minBase = customSettings.getDouble("RewardMinBase",0.0);
-                    double minInc = customSettings.getDouble("RewardMinIncreasePerLevel",0.0);
-                    double maxBase = customSettings.getDouble("RewardMaxBase",0.0);
-                    double maxInc = customSettings.getDouble("RewardMaxIncreasePerLevel",0.0);
+                    double minBase = customSettings.getDouble("RewardMinBase", 0.0);
+                    double minInc = customSettings.getDouble("RewardMinIncreasePerLevel", 0.0);
+                    double maxBase = customSettings.getDouble("RewardMaxBase", 0.0);
+                    double maxInc = customSettings.getDouble("RewardMaxIncreasePerLevel", 0.0);
                     // Calculate current min/max as doubles first
-                    double currentMin = Math.max(0.0, minBase + (minInc*levelFactor));
-                    double currentMax = Math.max(currentMin, maxBase + (maxInc*levelFactor)); // Ensure max >= min
+                    double currentMin = Math.max(0.0, minBase + (minInc * levelFactor));
+                    double currentMax = Math.max(currentMin, maxBase + (maxInc * levelFactor)); // Ensure max >= min
                     // Format as integers using static formatter
-                    result = result.replace("%min_amount%", FORMAT_INTEGER.format((long)Math.floor(currentMin)));
-                    result = result.replace("%max_amount%", FORMAT_INTEGER.format((long)Math.floor(currentMax)));
+                    result = result.replace("%min_amount%", FORMAT_INTEGER.format((long) Math.floor(currentMin)));
+                    result = result.replace("%max_amount%", FORMAT_INTEGER.format((long) Math.floor(currentMax)));
                 } else {
                     result = result.replace("%min_amount%", naText).replace("%max_amount%", naText);
                 }
@@ -608,26 +661,30 @@ public class EnchantmentWrapper {
             // Duration (Formatted as integer seconds)
             if (result.contains("%duration%")) {
                 if (customSettings.contains("DurationBase")) {
-                    int durationVal = customSettings.getInt("DurationBase",0) + (customSettings.getInt("DurationIncreasePerLevel",0)*levelFactor);
+                    int durationVal = customSettings.getInt("DurationBase", 0) + (customSettings.getInt("DurationIncreasePerLevel", 0) * levelFactor);
                     result = result.replace("%duration%", String.valueOf(Math.max(0, durationVal)));
-                } else { result = result.replace("%duration%", naText); }
+                } else {
+                    result = result.replace("%duration%", naText);
+                }
             }
 
             // Multiplier (Formatted to one decimal place)
             if (result.contains("%multiplier%")) {
                 if (customSettings.contains("MultiplierBase")) {
-                    double multVal = customSettings.getDouble("MultiplierBase",1.0)+(customSettings.getDouble("MultiplierIncreasePerLevel",0)*levelFactor);
+                    double multVal = customSettings.getDouble("MultiplierBase", 1.0) + (customSettings.getDouble("MultiplierIncreasePerLevel", 0) * levelFactor);
                     result = result.replace("%multiplier%", FORMAT_ONE_DECIMAL.format(Math.max(0.0, multVal))); // Ensure non-negative
-                } else { result = result.replace("%multiplier%", naText); }
+                } else {
+                    result = result.replace("%multiplier%", naText);
+                }
             }
 
             // --- Generic Handling for other settings (Use with caution) ---
             // This allows simple placeholders like %my_custom_setting% if defined under Settings:
             // Be careful not to overwrite placeholders handled above.
-            for(String key : customSettings.getKeys(false)){
-                String placeholder = "%" + key.toLowerCase().replace("-","_") + "%";
+            for (String key : customSettings.getKeys(false)) {
+                String placeholder = "%" + key.toLowerCase().replace("-", "_") + "%";
                 // Check if it's a simple placeholder not handled by specific logic
-                if(result.contains(placeholder) && !isComplexCalculatedPlaceholder(placeholder)){
+                if (result.contains(placeholder) && !isComplexCalculatedPlaceholder(placeholder)) {
                     result = result.replace(placeholder, customSettings.getString(key, naText)); // Replace with string value
                 }
             }
@@ -713,6 +770,7 @@ public class EnchantmentWrapper {
     @Nullable public ConfigurationSection getCustomSettings() { return customSettings; }
     @NotNull public NamespacedKey getPdcLevelKey() { return pdcLevelKey; } // Already ensured not null in constructor/load
     public EnchantType getType() { return type; }
+    public ConfigManager.CurrencyType getCurrencyType() { return currencyType; }
 
     @Override
     public String toString() {

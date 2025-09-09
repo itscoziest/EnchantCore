@@ -99,7 +99,6 @@ public class PlayerInteractListener implements Listener {
 
             try {
                 EnchantGUI gui = new EnchantGUI(plugin, player, playerData, item);
-                EnchantGUIListener.setPickaxeForGui(player.getUniqueId(), item);
                 gui.open();
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Error opening EnchantGUI for player " + player.getName(), e);

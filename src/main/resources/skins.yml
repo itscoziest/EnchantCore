@@ -8,12 +8,12 @@
 # GUI Configuration
 # GUI Configuration
 gui:
-  title: "&6&lPickaxe Skins"
+  title: "&f"
   size: 54  # Must be a multiple of 9 (9, 18, 27, 36, 45, 54)
 
   # Filler item for empty slots
   filler:
-    enabled: true
+    enabled: false
     material: GRAY_STAINED_GLASS_PANE
     name: "&7"
     custom-model-data: 0
@@ -21,7 +21,7 @@ gui:
   # Back button configuration
   back-button:
     slot: 45  # Bottom left corner
-    material: ARROW
+    material: BARRIER
     name: "&c&lBack"
     lore:
       - "&7Click to return to"

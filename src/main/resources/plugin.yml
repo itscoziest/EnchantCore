@@ -40,6 +40,10 @@ commands:
     description: "Manage and check Gem balances."
     usage: "/gems <help|balance|give|take|set>"
     aliases: [g, gem]
+  points:
+    description: "Manage Rebirth Points."
+    usage: "/<command> [help|balance|give|take|set]"
+    aliases: [ rbpoints, rebirthpoints, rebirth-points ]
 
 permissions:
   enchantcore.admin:
@@ -109,4 +113,30 @@ permissions:
     default: op
   enchantcore.gems.modify.set:
     description: Allows setting gem balance (/gems set ...).
+    default: op
+  enchantcore.points.admin:
+    description: "Grants access to all admin-level points commands."
+    children:
+      enchantcore.points.modify.give: true
+      enchantcore.points.modify.take: true
+      enchantcore.points.modify.set: true
+      enchantcore.points.balance.others: true
+  enchantcore.points.player:
+    description: "Grants access to basic player points commands."
+    children:
+      enchantcore.points.balance: true
+  enchantcore.points.balance:
+    description: "Allows a player to check their own point balance."
+    default: true # All players can check their own balance by default
+  enchantcore.points.balance.others:
+    description: "Allows checking another player's point balance."
+    default: op
+  enchantcore.points.modify.give:
+    description: "Allows giving points to a player."
+    default: op
+  enchantcore.points.modify.take:
+    description: "Allows taking points from a player."
+    default: op
+  enchantcore.points.modify.set:
+    description: "Allows setting a player's point balance."
     default: op

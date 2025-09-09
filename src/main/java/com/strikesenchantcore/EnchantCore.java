@@ -87,187 +87,59 @@ public final class EnchantCore extends JavaPlugin {
         log.info("=== Enabling EnchantCore v" + getDescription().getVersion() + " (DEV MODE - NO LICENSE) ===");
 
         saveDefaultConfig();
-        org.bukkit.configuration.file.FileConfiguration bukkitConfig = getConfig();
 
-        // +++ LICENSE VALIDATION DISABLED FOR DEVELOPMENT +++
-        log.info(GREEN + "==============================================================");
-        log.info(GREEN + "                    🔧  DEVELOPMENT MODE 🔧                  ");
-        log.info(GREEN + "--------------------------------------------------------------");
-        log.info(GREEN + "              License validation is DISABLED");
-        log.info(GREEN + "              This is for development purposes only");
-        log.info(GREEN + "==============================================================" + RESET);
-
-        /*
-        // ORIGINAL LICENSE VALIDATION CODE (COMMENTED OUT)
-        log.info("Validating license...");
-        String licenseKeyFromConfig = bukkitConfig.getString("license", "YOUR_LICENSE_KEY_HERE");
-
-        if ("YOUR_LICENSE_KEY_HERE".equals(licenseKeyFromConfig) || licenseKeyFromConfig.trim().isEmpty()) {
-            log.severe("============================================================");
-            log.severe("                     ⚠️  LICENSE ERROR ⚠️                  ");
-            log.severe("------------------------------------------------------------");
-            log.severe(" EnchantCore could not start due to a missing or default key.");
-            log.severe("");
-            log.severe(" ➤ Please open your config.yml file.");
-            log.severe(" ➤ Set a valid license key under the 'license:' field.");
-            log.severe("");
-            log.severe(" Plugin will now be disabled to prevent unauthorized use.");
-            log.severe("");
-            log.severe(" Need help? Join our support Discord:");
-            log.severe(" ➥ https://discord.gg/ym4bZDsnC3");
-            log.severe("============================================================");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
-        try {
-            StrikesLicenseManager licenseManager = new StrikesLicenseManager(getObfuscatedLicenseApiUserId());
-
-            log.info("Verifying your license key...");
-            StrikesLicenseManager.ValidationType validationStatus = licenseManager.verify(licenseKeyFromConfig);
-
-            if (validationStatus == StrikesLicenseManager.ValidationType.VALID) {
-                log.info(GREEN + "==============================================================");
-                log.info(GREEN + "                    ✅  LICENSE VALIDATED ✅                 ");
-                log.info(GREEN + "--------------------------------------------------------------");
-                log.info(GREEN + "                  EnchantCore license validated");
-                log.info(GREEN + "                 Thank you for using our plugin!");
-                log.info(GREEN + "                  Join our Discord for support:");
-                log.info(GREEN + "                  https://discord.gg/ym4bZDsnC3");
-                log.info(GREEN + "==============================================================" + RESET);
-            }
-            else {
-                log.severe("============================================================");
-                log.severe("                ❌  LICENSE VALIDATION FAILED ❌           ");
-                log.severe("------------------------------------------------------------");
-
-                String failureReason;
-                if (validationStatus == StrikesLicenseManager.ValidationType.EXPIRED) {
-                    failureReason = " ➤ Reason: Your license is EXPIRED. Please renew it.";
-                } else {
-                    failureReason = " ➤ Reason: " + validationStatus.name();
-                }
-
-                log.severe(failureReason);
-                log.severe(" ➤ Key Snippet: " + licenseKeyFromConfig.substring(0, Math.min(licenseKeyFromConfig.length(), 4)) + "****");
-                log.severe("");
-                log.severe(" ➤ Please verify your license key in config.yml.");
-                log.severe(" ➤ Contact support if the problem persists.");
-                log.severe("");
-                log.severe(" Discord Support: https://discord.gg/ym4bZDsnC3");
-                log.severe("");
-                log.severe(" EnchantCore will now be disabled to prevent misuse.");
-                log.severe("============================================================");
-
-                Bukkit.getScheduler().cancelTasks(this);
-                Bukkit.getPluginManager().disablePlugin(this);
-                return;
-            }
-
-        } catch (Exception e) {
-            log.severe("============================================================");
-            log.severe("             💥  LICENSE VERIFICATION ERROR  💥             ");
-            log.severe("------------------------------------------------------------");
-            log.severe(" A critical error occurred during license validation.");
-            log.severe("");
-            log.severe(" ➤ Possible causes:");
-            log.severe("    - Invalid API response");
-            log.severe("    - Network connection issue");
-            log.severe("    - Internal server error");
-            log.severe("");
-            log.severe(" ➤ Please open a ticket in our Discord for assistance:");
-            log.severe("    https://discord.gg/ym4bZDsnC3");
-            log.severe("");
-            log.log(Level.SEVERE, " ➤ Underlying error details:", e);
-            log.severe("");
-            log.severe(" EnchantCore will now be disabled.");
-            log.severe("============================================================");
-
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
-        */
-        // +++ END OF COMMENTED LICENSE VALIDATION BLOCK +++
-
+        // --- STEP 1: INITIALIZE ALL MANAGERS FIRST ---
         log.info("Initializing configuration managers...");
+        this.configManager = new ConfigManager(this);
         this.messageManager = new MessageManager(this);
         this.enchantManager = new EnchantManager(this);
         this.pickaxeConfig = new PickaxeConfig(this);
         this.autoSellConfig = new AutoSellConfig(this);
-        this.configManager = new ConfigManager(this);
         this.itemsAdderUtil = new ItemsAdderUtil(this);
         this.skinConfig = new SkinConfig(this);
-        this.skinConfig = new SkinConfig(this);
         this.blackholeManager = new BlackholeManager(this);
-// Make sure config is loaded
-        if (this.skinConfig != null) {
-            this.skinConfig.loadConfig();
-        }
 
-        if (this.configManager != null) {
-            log.info("Loading all configurations through ConfigManager...");
-            this.configManager.loadConfigs();
-        } else {
-            log.severe("Core ConfigManager failed to initialize. Disabling EnchantCore.");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
+        // Load all .yml files into the managers
+        log.info("Loading all configurations...");
+        this.configManager.loadConfigs();
 
-        if (this.pickaxeConfig == null || this.enchantManager == null || this.messageManager == null || this.autoSellConfig == null) {
-            log.severe("!!! Critical: One or more specific config managers are null AFTER ConfigManager.loadConfigs(). Check constructors or ConfigManager logic. Disabling EnchantCore. !!!");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
-
-        log.info("Setting up hooks...");
-        this.vaultHook = new VaultHook(this);
-        if (!vaultHook.setupEconomy()) {
-            log.warning("Vault hook failed or no economy provider found. Vault-dependent features disabled.");
-        }
-        this.papiHook = new PapiHook(this);
-        if (papiHook.setupPlaceholderAPI()) {
-            if (papiHook.registerPlaceholders()) {
-                log.info("PlaceholderAPI hooked and placeholders registered.");
-            } else {
-                log.warning("PlaceholderAPI hooked but failed to register placeholders.");
-            }
-        } else {
-            log.info("PlaceholderAPI not found, placeholders disabled.");
-        }
-
-        if (this.worldGuardHook == null && Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
-            this.worldGuardHook = new WorldGuardHook(this);
-            this.worldGuardHook.initializeWorldGuardInstance();
-        }
-        if (this.worldGuardHook == null || !this.worldGuardHook.isEnabled()) {
-            log.warning("WorldGuard hook failed or flag registration issue. WorldGuard region features disabled.");
-        }
-        log.info("Hooks setup complete.");
-
+        // Now initialize the core logic managers that depend on the configs
         log.info("Initializing core managers...");
         this.playerDataManager = new PlayerDataManager(this);
         this.pickaxeManager = new PickaxeManager(this);
         this.enchantRegistry = new EnchantRegistry(this);
-        if (playerDataManager == null || this.pickaxeManager == null || enchantRegistry == null) {
-            log.severe("!!! Critical logic manager (PlayerData, Pickaxe, or EnchantRegistry) failed to initialize. Disabling EnchantCore. !!!");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
         this.enchantRegistry.loadEnchantsFromConfig();
-        log.info("Core managers initialized.");
 
+        // --- STEP 2: SETUP HOOKS ---
+        log.info("Setting up hooks...");
+        this.vaultHook = new VaultHook(this);
+        vaultHook.setupEconomy();
+
+        this.papiHook = new PapiHook(this);
+        if (papiHook.setupPlaceholderAPI()) {
+            papiHook.registerPlaceholders();
+            log.info("PlaceholderAPI hooked and placeholders registered.");
+        } else {
+            log.info("PlaceholderAPI not found, placeholders disabled.");
+        }
+
+        if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
+            this.worldGuardHook = new WorldGuardHook(this);
+            this.worldGuardHook.initializeWorldGuardInstance();
+        }
+
+        // --- STEP 3: REGISTER COMMANDS AND LISTENERS ---
+        // Now that all managers and hooks exist, we can safely register commands and listeners
         log.info("Registering listeners and commands...");
         registerListeners();
         registerCommands();
         log.info("Listeners and commands registered.");
 
+        // --- STEP 4: START TASKS AND OTHER LOGIC ---
         initializeMetrics();
         startRepeatingTasks();
 
-        if (playerDataManager != null) {
-            playerDataManager.loadOnlinePlayers();
-        } else {
-            log.severe("PlayerDataManager was null before loadOnlinePlayers could be called!");
-        }
+        playerDataManager.loadOnlinePlayers();
 
         log.info("=== EnchantCore Enabled Successfully (DEV MODE) ===");
     }
@@ -416,6 +288,14 @@ public final class EnchantCore extends JavaPlugin {
             gemsCmd.setExecutor(gemsExecutor);
             gemsCmd.setTabCompleter(gemsExecutor);
         } else { getLogger().log(Level.SEVERE, "Command 'gems' not found in plugin.yml!"); }
+
+        // --- ADDED: The new Points command is now registered here in the correct order ---
+        PluginCommand pointsCmd = getCommand("points");
+        if (pointsCmd != null) {
+            PointsCommand pointsExecutor = new PointsCommand(this);
+            pointsCmd.setExecutor(pointsExecutor);
+            pointsCmd.setTabCompleter(pointsExecutor);
+        } else { getLogger().log(Level.SEVERE, "Command 'points' not found in plugin.yml!"); }
     }
 
     private void initializeMetrics() {
