@@ -465,8 +465,11 @@ public class EnchantGUI implements InventoryHolder {
                     player.closeInventory();
                 }
             } else {
-                // All other buttons send the under development message
-                ChatUtil.sendMessage(player, "&c&lUNDER DEVELOPMENT");
+                if (slot == 51) { // Crystals button
+                    new CrystalsGUI(plugin, player).open();
+                } else {
+                    ChatUtil.sendMessage(player, "&c&lUNDER DEVELOPMENT");
+                }
             }
             return true;
         }

@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import org.bukkit.OfflinePlayer;
-import java.util.Map;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,6 +21,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.HashMap;
+import java.util.Map;
+import org.bukkit.configuration.ConfigurationSection;
 
 /**
  * Manages loading/saving PlayerData from individual YAML files.
@@ -84,10 +86,39 @@ public class PlayerDataManager {
                 data.setShowEnchantSounds(showSounds);
                 data.setTokens(tokens);
                 data.setGems(gems);
-                // --- CHANGED: Use public setters to restore booster state ---
                 data.setBlockBoosterEndTime(boosterEndTime);
                 data.setBlockBoosterMultiplier(boosterMultiplier);
-                // --- END CHANGED ---
+
+                // Load crystal data
+                ConfigurationSection crystalsSection = playerConfig.getConfigurationSection("crystals");
+                if (crystalsSection != null) {
+                    ConfigurationSection storageSection = crystalsSection.getConfigurationSection("storage");
+                    if (storageSection != null) {
+                        Map<String, Integer> crystalStorage = new HashMap<>();
+                        for (String key : storageSection.getKeys(false)) {
+                            crystalStorage.put(key, storageSection.getInt(key));
+                        }
+                        data.setCrystalStorage(crystalStorage);
+                    }
+
+                    ConfigurationSection equippedSection = crystalsSection.getConfigurationSection("equipped");
+                    if (equippedSection != null) {
+                        Map<Integer, String> equippedCrystals = new HashMap<>();
+                        for (String key : equippedSection.getKeys(false)) {
+                            try {
+                                int slot = Integer.parseInt(key);
+                                String crystalType = equippedSection.getString(key);
+                                if (crystalType != null && !crystalType.isEmpty()) {
+                                    equippedCrystals.put(slot, crystalType);
+                                }
+                            } catch (NumberFormatException e) {
+                                // Skip invalid keys
+                            }
+                        }
+                        data.setEquippedCrystals(equippedCrystals);
+                    }
+                }
+
                 if (debug) logger.fine("[PlayerData] Loaded data for " + playerUUID + " from file.");
 
             } catch (IOException | InvalidConfigurationException e) {
@@ -147,10 +178,12 @@ public class PlayerDataManager {
             playerConfig.set("settings.showEnchantSounds", data.isShowEnchantSounds());
             playerConfig.set("currency.tokens", data.getTokens());
             playerConfig.set("currency.gems", data.getGems());
-            // --- CHANGED: Use public getters to save booster info ---
             playerConfig.set("boosters.block.endTime", data.getBlockBoosterEndTime());
             playerConfig.set("boosters.block.multiplier", data.getRawBlockBoosterMultiplier());
-            // --- END CHANGED ---
+
+            // --- FIXED: Call the dedicated method to save crystal data ---
+            saveCrystalData(playerConfig, data);
+            // --- END FIXED ---
 
             try {
                 if (!dataFolder.exists()) {
@@ -196,9 +229,35 @@ public class PlayerDataManager {
         logger.info("Player data saving triggered (" + (performAsync ? "asynchronously" : "synchronously") + "). Count: " + cacheSize + ". Approx time if sync: " + duration + "ms.");
     }
 
+    private void saveCrystalData(FileConfiguration config, PlayerData playerData) {
+        Map<String, Integer> crystals = playerData.getCrystalStorage();
+        Map<Integer, String> equipped = playerData.getEquippedCrystals();
+
+        // Clear existing crystal data to prevent orphaned entries
+        config.set("crystals", null);
+
+        if (crystals != null && !crystals.isEmpty()) {
+            config.set("crystals.storage", crystals);
+        }
+
+        if (equipped != null && !equipped.isEmpty()) {
+            // To ensure keys are saved as strings in YAML
+            Map<String, String> equippedStringKeys = new HashMap<>();
+            equipped.forEach((slot, type) -> equippedStringKeys.put(String.valueOf(slot), type));
+            config.set("crystals.equipped", equippedStringKeys);
+        }
+
+        if (plugin.getConfigManager().isDebugMode()) {
+            logger.info("DEBUG: Saved crystal data - Storage: " + crystals + ", Equipped: " + equipped);
+        }
+    }
+
     @Nullable
     public PlayerData getPlayerData(@NotNull UUID playerUUID) {
-        return playerDataCache.get(playerUUID);
+        if (playerDataCache.containsKey(playerUUID)) {
+            return playerDataCache.get(playerUUID);
+        }
+        return loadPlayerData(playerUUID);
     }
 
     public void unloadPlayerData(@NotNull UUID playerUUID, boolean saveBeforeUnload) {

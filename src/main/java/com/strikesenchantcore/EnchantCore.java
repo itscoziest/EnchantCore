@@ -16,6 +16,8 @@ import com.strikesenchantcore.util.ItemsAdderUtil;
 import com.strikesenchantcore.gui.PickaxeSkinsGUIListener;
 import com.strikesenchantcore.gui.PickaxeSkinsGUI;
 import com.strikesenchantcore.managers.BlackholeManager;
+import com.strikesenchantcore.commands.CrystalsCommand;
+import com.strikesenchantcore.managers.CrystalManager;
 
 // +++ Import for local StrikesLicenseManager (COMMENTED OUT FOR DEV) +++
 // import com.strikesenchantcore.util.StrikesLicenseManager;
@@ -28,6 +30,7 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bstats.bukkit.Metrics;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.strikesenchantcore.gui.CrystalsGUIListener;
 
 import java.nio.charset.StandardCharsets; // For encoding
 import java.util.logging.Level;
@@ -56,6 +59,9 @@ public final class EnchantCore extends JavaPlugin {
     private static final int BSTATS_PLUGIN_ID = 25927;
     private SkinConfig skinConfig;
     private BlackholeManager blackholeManager;
+    private CrystalManager crystalManager;
+    private CrystalsGUIListener crystalsGUIListener;
+
 
 
     // +++ License Configuration (TEMPORARILY DISABLED FOR DEVELOPMENT) +++
@@ -98,6 +104,8 @@ public final class EnchantCore extends JavaPlugin {
         this.itemsAdderUtil = new ItemsAdderUtil(this);
         this.skinConfig = new SkinConfig(this);
         this.blackholeManager = new BlackholeManager(this);
+        this.playerDataManager = new PlayerDataManager(this);
+        this.crystalManager = new CrystalManager(this);
 
         // Load all .yml files into the managers
         log.info("Loading all configurations...");
@@ -105,7 +113,7 @@ public final class EnchantCore extends JavaPlugin {
 
         // Now initialize the core logic managers that depend on the configs
         log.info("Initializing core managers...");
-        this.playerDataManager = new PlayerDataManager(this);
+        // --- FIXED: Removed redundant PlayerDataManager initialization ---
         this.pickaxeManager = new PickaxeManager(this);
         this.enchantRegistry = new EnchantRegistry(this);
         this.enchantRegistry.loadEnchantsFromConfig();
@@ -138,6 +146,7 @@ public final class EnchantCore extends JavaPlugin {
         // --- STEP 4: START TASKS AND OTHER LOGIC ---
         initializeMetrics();
         startRepeatingTasks();
+
 
         playerDataManager.loadOnlinePlayers();
 
@@ -211,6 +220,8 @@ public final class EnchantCore extends JavaPlugin {
         this.passiveEffectTask = null;
         this.blockBreakListener = null;
         this.blackholeManager = null;
+        this.crystalManager = null;
+        this.crystalsGUIListener = null;
         instance = null;
         getLogger().info("Cleanup complete.");
         getLogger().info("=== EnchantCore Disabled ===");
@@ -252,6 +263,8 @@ public final class EnchantCore extends JavaPlugin {
         pm.registerEvents(new PlayerQuitListener(this), this);
         pm.registerEvents(new PinataListener(this), this);
         pm.registerEvents(new OverchargeListener(this), this);
+        crystalsGUIListener = new CrystalsGUIListener(this);
+        pm.registerEvents(crystalsGUIListener, this);
     }
 
     private void registerCommands() {
@@ -296,7 +309,14 @@ public final class EnchantCore extends JavaPlugin {
             pointsCmd.setExecutor(pointsExecutor);
             pointsCmd.setTabCompleter(pointsExecutor);
         } else { getLogger().log(Level.SEVERE, "Command 'points' not found in plugin.yml!"); }
+        PluginCommand crystalsCmd = getCommand("crystals");
+        if (crystalsCmd != null) {
+            CrystalsCommand crystalsExecutor = new CrystalsCommand(this);
+            crystalsCmd.setExecutor(crystalsExecutor);
+            crystalsCmd.setTabCompleter(crystalsExecutor);
+        } else { getLogger().log(Level.SEVERE, "Command 'crystals' not found in plugin.yml!"); }
     }
+
 
     private void initializeMetrics() {
         if (BSTATS_PLUGIN_ID <= 0) {
@@ -353,6 +373,12 @@ public final class EnchantCore extends JavaPlugin {
     @Nullable public MessageManager getMessageManager() { return messageManager; }
     public BlackholeManager getBlackholeManager() {
         return blackholeManager;
+    }
+    public CrystalManager getCrystalManager() {
+        return crystalManager;
+    }
+    public CrystalsGUIListener getCrystalsGUIListener() {
+        return crystalsGUIListener;
     }
 
     @Nullable

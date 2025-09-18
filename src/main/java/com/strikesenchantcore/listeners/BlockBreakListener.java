@@ -40,6 +40,7 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
+import com.strikesenchantcore.managers.CrystalManager;
 
 import java.text.NumberFormat;
 import java.util.*;
@@ -48,6 +49,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
 
 public class BlockBreakListener implements Listener {
 
@@ -61,6 +63,7 @@ public class BlockBreakListener implements Listener {
     private final ConfigManager configManager;
     private final MessageManager messageManager;
     private final Logger logger;
+
     private final Random random = ThreadLocalRandom.current();
     private static final String METADATA_ENCHANT_BREAK = "EnchantCore_EnchantBreak";
     private static final String METADATA_NUKE_TNT = "EnchantCore_NukeTNT";
@@ -68,6 +71,7 @@ public class BlockBreakListener implements Listener {
     private static final int MAX_BLOCKS_PER_TICK = Integer.MAX_VALUE;
     private static final long MAX_NANOS_PER_TICK = Long.MAX_VALUE;
     private static final NamespacedKey BLACKHOLE_ARMOR_STAND_KEY = new NamespacedKey(EnchantCore.getInstance(), "blackhole_armor_stand");
+    private CrystalManager crystalManager;
 
     private final Map<UUID, AutoSellSummary> playerSummaries = new ConcurrentHashMap<>();
     private final Map<UUID, BukkitTask> pendingSummaryTasks = new ConcurrentHashMap<>();
@@ -91,6 +95,7 @@ public class BlockBreakListener implements Listener {
         this.configManager = plugin.getConfigManager();
         this.messageManager = plugin.getMessageManager();
         this.logger = plugin.getLogger();
+        this.crystalManager = plugin.getCrystalManager();
     }
 
     private void handleBlackhole(Player player, Location epicenter, ItemStack pickaxe, int level, ConfigurationSection settings, PlayerData playerData) {
@@ -349,7 +354,8 @@ public class BlockBreakListener implements Listener {
 
         private void complete() {
             if (totalTokens > 0) {
-                playerData.addTokens(totalTokens);
+                long bonusTokens = applyCrystalBonus(player, totalTokens, "tokens");
+                playerData.addTokens(bonusTokens);
                 plugin.getPlayerDataManager().savePlayerData(playerData, true);
             }
             String msg = settings.getString("CompletionMessage", "&5&lVORTEX COMPLETE! &d+%tokens_gained% tokens from %blocks_consumed% blocks!");
@@ -1604,7 +1610,8 @@ public class BlockBreakListener implements Listener {
                     if (recipientData == null) { recipientData = dataManager.loadPlayerData(recipient.getUniqueId()); }
 
                     if (recipientData != null) {
-                        recipientData.addTokens(amountToGive);
+                        long bonusAmount = applyCrystalBonus(recipient, amountToGive, "tokens");
+                        recipientData.addTokens(bonusAmount);
                         dataManager.savePlayerData(recipientData, true);
                         givenCount++;
 
@@ -1751,7 +1758,8 @@ public class BlockBreakListener implements Listener {
         final NumberFormat tokenFormat = NumberFormat.getNumberInstance(Locale.US);
 
         runTaskSync(() -> {
-            finalPlayerData.addTokens(amountToGive);
+            long bonusAmount = applyCrystalBonus(finalPlayer, amountToGive, "tokens");
+            finalPlayerData.addTokens(bonusAmount);
             dataManager.savePlayerData(finalPlayerData, true);
 
             if (finalPlayerData.isShowEnchantMessages()) {
@@ -1907,6 +1915,34 @@ public class BlockBreakListener implements Listener {
         } else {
             if (debug) logger.info("[Dbg][NukeNotify] notifyNukeComplete called for " + playerUUID + ", but they were not in the active set.");
         }
+    }
+
+
+
+    private long applyCrystalBonus(Player player, long baseAmount, String type) {
+        if (crystalManager == null) return baseAmount;
+
+        double multiplier = 1.0;
+
+        switch (type.toLowerCase()) {
+            case "tokens":
+                multiplier += crystalManager.getTokenMultiplier(player);
+                break;
+            case "gems":
+                multiplier += crystalManager.getGemMultiplier(player);
+                break;
+            case "rank":
+                multiplier += crystalManager.getRankMultiplier(player);
+                break;
+            case "pickaxe_xp":
+                multiplier += crystalManager.getPickaxeXpMultiplier(player);
+                break;
+            case "salvage":
+                multiplier += crystalManager.getSalvageMultiplier(player);
+                break;
+        }
+
+        return Math.round(baseAmount * multiplier);
     }
 
     private long getActiveBlockCountFromLastNuke(UUID uuid) { return 0; }

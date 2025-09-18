@@ -186,8 +186,11 @@ public class GemsGUI implements InventoryHolder {
                     player.closeInventory();
                 }
             } else {
-                // All other buttons (Gems, Mortar, etc.)
-                ChatUtil.sendMessage(player, "&c&lUNDER DEVELOPMENT");
+                if (slot == 51) { // Crystals button
+                    new CrystalsGUI(plugin, player).open();
+                } else {
+                    ChatUtil.sendMessage(player, "&c&lUNDER DEVELOPMENT");
+                }
             }
             return true;
         }

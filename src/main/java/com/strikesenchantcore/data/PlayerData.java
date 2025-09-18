@@ -5,6 +5,8 @@ import org.jetbrains.annotations.NotNull;
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PlayerData {
 
@@ -14,6 +16,9 @@ public class PlayerData {
     private long tokens;
     private long gems;
     private long points; // ADDED: For Rebirth Points
+
+    private Map<String, Integer> crystalStorage = new HashMap<>(); // "TYPE_TIER" -> amount
+    private Map<Integer, String> equippedCrystals = new HashMap<>(); // slot -> "TYPE_TIER"
 
     // Booster fields
     private long blockBoosterEndTime = 0L;
@@ -156,6 +161,8 @@ public class PlayerData {
         this.blockBoosterMultiplier = 1.0;
     }
 
+
+
     public long getBlockBoosterEndTime() { return this.blockBoosterEndTime; }
     public void setBlockBoosterEndTime(long endTime) { this.blockBoosterEndTime = endTime; }
     public double getRawBlockBoosterMultiplier() { return this.blockBoosterMultiplier; }
@@ -183,4 +190,24 @@ public class PlayerData {
                 ", boosterActive=" + isBlockBoosterActive() +
                 '}';
     }
+
+    // Crystal system methods
+    public Map<String, Integer> getCrystalStorage() {
+        if (crystalStorage == null) crystalStorage = new HashMap<>();
+        return crystalStorage;
+    }
+
+    public void setCrystalStorage(Map<String, Integer> crystalStorage) {
+        this.crystalStorage = crystalStorage;
+    }
+
+    public Map<Integer, String> getEquippedCrystals() {
+        if (equippedCrystals == null) equippedCrystals = new HashMap<>();
+        return equippedCrystals;
+    }
+
+    public void setEquippedCrystals(Map<Integer, String> equippedCrystals) {
+        this.equippedCrystals = equippedCrystals;
+    }
+
 }

@@ -44,6 +44,10 @@ commands:
     description: "Manage Rebirth Points."
     usage: "/<command> [help|balance|give|take|set]"
     aliases: [ rbpoints, rebirthpoints, rebirth-points ]
+  crystals:
+    description: "Manage and view crystals."
+    usage: "/crystals [help|info|give|merge]"
+    aliases: [ crystal ]
 
 permissions:
   enchantcore.admin:
@@ -140,3 +144,10 @@ permissions:
   enchantcore.points.modify.set:
     description: "Allows setting a player's point balance."
     default: op
+  enchantcore.crystals.admin:
+    description: "Grants access to all admin-level crystals commands."
+    default: op
+    enchantcore.crystals.use:
+      description: "Allows a player to use basic crystals commands."
+      default: true
+
