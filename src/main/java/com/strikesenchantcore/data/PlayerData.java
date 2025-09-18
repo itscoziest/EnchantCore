@@ -3,10 +3,10 @@ package com.strikesenchantcore.data;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.NumberFormat;
-import java.util.Locale;
-import java.util.UUID;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 public class PlayerData {
 
@@ -23,6 +23,13 @@ public class PlayerData {
     // Booster fields
     private long blockBoosterEndTime = 0L;
     private double blockBoosterMultiplier = 1.0;
+
+    // Mortar data fields
+    private int mortarLevel = 0;
+    private long mortarLastActivation = 0L;
+    private long mortarBoostEndTime = 0L;
+    private double mortarBoostMultiplier = 1.0;
+    private final Map<String, Integer> mortarUpgrades = new HashMap<>();
 
     // Toggleable settings
     private boolean showEnchantMessages = true;
@@ -161,12 +168,45 @@ public class PlayerData {
         this.blockBoosterMultiplier = 1.0;
     }
 
-
-
     public long getBlockBoosterEndTime() { return this.blockBoosterEndTime; }
     public void setBlockBoosterEndTime(long endTime) { this.blockBoosterEndTime = endTime; }
     public double getRawBlockBoosterMultiplier() { return this.blockBoosterMultiplier; }
     public void setBlockBoosterMultiplier(double multiplier) { this.blockBoosterMultiplier = multiplier; }
+
+    // --- Mortar Methods ---
+    public int getMortarLevel() { return mortarLevel; }
+    public void setMortarLevel(int level) { this.mortarLevel = Math.max(0, level); }
+
+    public long getMortarLastActivation() { return mortarLastActivation; }
+    public void setMortarLastActivation(long timestamp) { this.mortarLastActivation = timestamp; }
+
+    public long getMortarBoostEndTime() { return mortarBoostEndTime; }
+    public void setMortarBoostEndTime(long endTime) { this.mortarBoostEndTime = endTime; }
+
+    public double getMortarBoostMultiplier() { return mortarBoostMultiplier; }
+    public void setMortarBoostMultiplier(double multiplier) { this.mortarBoostMultiplier = multiplier; }
+
+    public boolean hasMortarBoost() {
+        return mortarBoostEndTime > System.currentTimeMillis();
+    }
+
+    public double getActiveMortarBoost() {
+        return hasMortarBoost() ? mortarBoostMultiplier : 1.0;
+    }
+
+    public Map<String, Integer> getMortarUpgrades() { return new HashMap<>(mortarUpgrades); }
+
+    public int getMortarUpgradeLevel(String upgrade) {
+        return mortarUpgrades.getOrDefault(upgrade.toLowerCase(), 0);
+    }
+
+    public void setMortarUpgradeLevel(String upgrade, int level) {
+        if (level <= 0) {
+            mortarUpgrades.remove(upgrade.toLowerCase());
+        } else {
+            mortarUpgrades.put(upgrade.toLowerCase(), level);
+        }
+    }
 
     // --- Overcharge Methods ---
     public int getOverchargeCharge() { return this.overchargeCharge; }
@@ -183,11 +223,13 @@ public class PlayerData {
                 ", blocks=" + blocksMined +
                 ", tokens=" + tokens +
                 ", gems=" + gems +
-                ", points=" + points + // ADDED
+                ", points=" + points +
+                ", mortarLvl=" + mortarLevel + // ADDED
                 ", showMsg=" + showEnchantMessages +
                 ", showSnd=" + showEnchantSounds +
                 ", showAnim=" + showEnchantAnimations +
                 ", boosterActive=" + isBlockBoosterActive() +
+                ", mortarBoostActive=" + hasMortarBoost() + // ADDED
                 '}';
     }
 

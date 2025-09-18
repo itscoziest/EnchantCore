@@ -49,6 +49,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import com.strikesenchantcore.managers.MortarManager;
 
 
 public class BlockBreakListener implements Listener {
@@ -163,7 +164,7 @@ public class BlockBreakListener implements Listener {
 
         BlackholeManager blackholeManager = plugin.getBlackholeManager();
         if (blackholeManager != null) {
-            blackholeManager.registerBlackhole(vortexCenter, 4);
+            blackholeManager.registerBlackhole(playerUUID, vortexCenter, 4);
         }
 
         if (playerData.isShowEnchantMessages()) {
@@ -354,8 +355,9 @@ public class BlockBreakListener implements Listener {
 
         private void complete() {
             if (totalTokens > 0) {
-                long bonusTokens = applyCrystalBonus(player, totalTokens, "tokens");
-                playerData.addTokens(bonusTokens);
+                long boostedTokens = applyMortarBoostToReward(player, totalTokens);
+                long finalTokens = applyCrystalBonus(player, boostedTokens, "tokens");
+                playerData.addTokens(finalTokens);
                 plugin.getPlayerDataManager().savePlayerData(playerData, true);
             }
             String msg = settings.getString("CompletionMessage", "&5&lVORTEX COMPLETE! &d+%tokens_gained% tokens from %blocks_consumed% blocks!");
@@ -573,6 +575,15 @@ public class BlockBreakListener implements Listener {
             try { pendingTask.cancel(); } catch (Exception ignore) {}
         }
         playerSummaries.remove(playerUUID);
+
+        // Ensure blackhole entities are cleaned up when player quits
+        if (activeBlackholePlayers.remove(playerUUID)) {
+            BlackholeManager blackholeManager = plugin.getBlackholeManager();
+            if (blackholeManager != null) {
+                // This will also remove the associated entities via the manager's cleanup.
+                blackholeManager.removeBlackholeByPlayer(playerUUID);
+            }
+        }
     }
 
 
@@ -583,10 +594,13 @@ public class BlockBreakListener implements Listener {
         int removedArmorStands = 0;
         int removedSpheres = 0;
 
+        // Direct reference to the key for robust cleanup
+        NamespacedKey blackholeKey = new NamespacedKey(plugin, "blackhole_armor_stand");
+
         // Clean up armor stands
         for (World world : Bukkit.getWorlds()) {
             for (Entity entity : world.getEntities()) {
-                if (entity instanceof ArmorStand && entity.getPersistentDataContainer().has(BLACKHOLE_ARMOR_STAND_KEY, PersistentDataType.BYTE)) {
+                if (entity instanceof ArmorStand && entity.getPersistentDataContainer().has(blackholeKey, PersistentDataType.BYTE)) {
                     entity.remove();
                     removedArmorStands++;
                 }
@@ -600,12 +614,10 @@ public class BlockBreakListener implements Listener {
                 Location loc = blockEntry.getKey();
                 BlockData originalData = blockEntry.getValue();
 
-                // Ensure world is loaded
                 if (loc.getWorld() == null) continue;
 
                 Block block = loc.getBlock();
 
-                // Only restore if it's still a coal block (our sphere)
                 if (block.getType() == Material.COAL_BLOCK) {
                     block.setBlockData(originalData, false);
                     removedSpheres++;
@@ -944,6 +956,7 @@ public class BlockBreakListener implements Listener {
 
         private int burstsFired = 0;
 
+
         public DragonBurstTask(Player p, ItemStack pick, Location start, int l, ConfigurationSection s, PlayerData pd) {
             this.player = p;
             this.pickaxe = pick;
@@ -1080,14 +1093,17 @@ public class BlockBreakListener implements Listener {
                     long totalGemsGained = gemsPerBlock * blocksShattered;
 
                     if (totalGemsGained > 0) {
-                        playerData.addGems(totalGemsGained);
+                        long boostedGems = applyMortarBoostToReward(player, totalGemsGained);
+                        long finalGems = applyCrystalBonus(player, boostedGems, "gems");
+
+                        playerData.addGems(finalGems);
                         if (playerData.isShowEnchantSounds()) {
                             playSoundAt(player, player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f);
                         }
                         if (playerData.isShowEnchantMessages()) {
                             String message = settings.getString("Message", "&b&lFROSTBITE! &fShattered %blocks_shattered% blocks for &d%gems_gained% Gems!")
                                     .replace("%blocks_shattered%", String.valueOf(blocksShattered))
-                                    .replace("%gems_gained%", String.valueOf(totalGemsGained));
+                                    .replace("%gems_gained%", String.valueOf(finalGems));
                             ChatUtil.sendMessage(player, message);
                         }
                     }
@@ -1610,8 +1626,9 @@ public class BlockBreakListener implements Listener {
                     if (recipientData == null) { recipientData = dataManager.loadPlayerData(recipient.getUniqueId()); }
 
                     if (recipientData != null) {
-                        long bonusAmount = applyCrystalBonus(recipient, amountToGive, "tokens");
-                        recipientData.addTokens(bonusAmount);
+                        long boostedAmount = applyMortarBoostToReward(recipient, amountToGive);
+                        long finalAmount = applyCrystalBonus(recipient, boostedAmount, "tokens");
+                        recipientData.addTokens(finalAmount);
                         dataManager.savePlayerData(recipientData, true);
                         givenCount++;
 
@@ -1758,8 +1775,9 @@ public class BlockBreakListener implements Listener {
         final NumberFormat tokenFormat = NumberFormat.getNumberInstance(Locale.US);
 
         runTaskSync(() -> {
-            long bonusAmount = applyCrystalBonus(finalPlayer, amountToGive, "tokens");
-            finalPlayerData.addTokens(bonusAmount);
+            long boostedAmount = applyMortarBoostToReward(finalPlayer, amountToGive);
+            long finalAmount = applyCrystalBonus(finalPlayer, amountToGive, "tokens");
+            finalPlayerData.addTokens(finalAmount);
             dataManager.savePlayerData(finalPlayerData, true);
 
             if (finalPlayerData.isShowEnchantMessages()) {
@@ -1943,6 +1961,15 @@ public class BlockBreakListener implements Listener {
         }
 
         return Math.round(baseAmount * multiplier);
+    }
+
+    private long applyMortarBoostToReward(Player player, long baseReward) {
+        MortarManager mortarManager = plugin.getMortarManager();
+        if (mortarManager != null && mortarManager.hasActiveBoost(player.getUniqueId())) {
+            double multiplier = mortarManager.getActiveBoostMultiplier(player.getUniqueId());
+            return (long) (baseReward * multiplier);
+        }
+        return baseReward;
     }
 
     private long getActiveBlockCountFromLastNuke(UUID uuid) { return 0; }

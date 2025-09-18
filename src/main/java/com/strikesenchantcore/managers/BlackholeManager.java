@@ -36,13 +36,15 @@ public class BlackholeManager {
         private final Set<Location> affectedBlocks;
         private final long creationTime;
         private final int radius;
+        private final UUID playerUUID;
 
-        public BlackholeData(UUID id, Location center, int radius) {
+        public BlackholeData(UUID id, Location center, int radius, UUID playerUUID) {
             this.id = id;
             this.center = center;
             this.radius = radius;
             this.affectedBlocks = new HashSet<>();
             this.creationTime = System.currentTimeMillis();
+            this.playerUUID = playerUUID;
         }
 
         public UUID getId() { return id; }
@@ -50,17 +52,18 @@ public class BlackholeManager {
         public Set<Location> getAffectedBlocks() { return affectedBlocks; }
         public long getCreationTime() { return creationTime; }
         public int getRadius() { return radius; }
+        public UUID getPlayerUUID() { return playerUUID; }
     }
 
-    public void registerBlackhole(Location center, int radius) {
+    public void registerBlackhole(UUID playerUUID, Location center, int radius) {
         UUID blackholeId = UUID.randomUUID();
-        BlackholeData data = new BlackholeData(blackholeId, center, radius);
+        BlackholeData data = new BlackholeData(blackholeId, center, radius, playerUUID);
 
         generateSphere(center, radius, data.getAffectedBlocks());
         activeBlackholes.put(blackholeId, data);
         saveBlackholeData();
 
-        plugin.getLogger().info("Registered blackhole at " + locationToString(center));
+        plugin.getLogger().info("Registered blackhole for player " + playerUUID + " at " + locationToString(center));
     }
 
     public boolean removeBlackholeByLocation(Location location) {
@@ -79,6 +82,16 @@ public class BlackholeManager {
             return true;
         }
         return false;
+    }
+
+    public void removeBlackholeByPlayer(UUID playerUUID) {
+        Iterator<Map.Entry<UUID, BlackholeData>> iterator = activeBlackholes.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<UUID, BlackholeData> entry = iterator.next();
+            if (entry.getValue().getPlayerUUID().equals(playerUUID)) {
+                iterator.remove();
+            }
+        }
     }
 
     public void cleanupAllBlackholes() {
@@ -154,11 +167,12 @@ public class BlackholeManager {
                     double y = blackholeConfig.getDouble("blackholes." + key + ".y");
                     double z = blackholeConfig.getDouble("blackholes." + key + ".z");
                     int radius = blackholeConfig.getInt("blackholes." + key + ".radius");
+                    UUID playerUUID = UUID.fromString(blackholeConfig.getString("blackholes." + key + ".player_uuid"));
 
                     World world = Bukkit.getWorld(worldName);
                     if (world != null) {
                         Location center = new Location(world, x, y, z);
-                        BlackholeData data = new BlackholeData(id, center, radius);
+                        BlackholeData data = new BlackholeData(id, center, radius, playerUUID);
 
                         generateSphere(center, radius, data.getAffectedBlocks());
                         restoreBlocks(data);
@@ -191,6 +205,7 @@ public class BlackholeManager {
                 blackholeConfig.set(path + ".z", center.getZ());
                 blackholeConfig.set(path + ".radius", data.getRadius());
                 blackholeConfig.set(path + ".created", data.getCreationTime());
+                blackholeConfig.set(path + ".player_uuid", data.getPlayerUUID().toString());
             }
 
             blackholeConfig.save(blackholeDataFile);

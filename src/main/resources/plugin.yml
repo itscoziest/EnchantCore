@@ -48,6 +48,11 @@ commands:
     description: "Manage and view crystals."
     usage: "/crystals [help|info|give|merge]"
     aliases: [ crystal ]
+  mortar:
+    description: "Access and manage your Mortar upgrades."
+    usage: "/mortar [gui|upgrade|stats]"
+    aliases: [ m, mort ]
+    permission: enchantcore.mortar.use
 
 permissions:
   enchantcore.admin:
@@ -147,7 +152,13 @@ permissions:
   enchantcore.crystals.admin:
     description: "Grants access to all admin-level crystals commands."
     default: op
-    enchantcore.crystals.use:
-      description: "Allows a player to use basic crystals commands."
-      default: true
+  enchantcore.crystals.use:
+    description: "Allows a player to use basic crystals commands."
+    default: true
+  enchantcore.mortar.use:
+    description: Allows usage of the mortar system.
+    default: true
+  enchantcore.mortar.admin:
+    description: Allows admin access to mortar system.
+    default: op
 

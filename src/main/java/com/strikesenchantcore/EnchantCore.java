@@ -18,6 +18,9 @@ import com.strikesenchantcore.gui.PickaxeSkinsGUI;
 import com.strikesenchantcore.managers.BlackholeManager;
 import com.strikesenchantcore.commands.CrystalsCommand;
 import com.strikesenchantcore.managers.CrystalManager;
+import com.strikesenchantcore.managers.MortarManager;
+import com.strikesenchantcore.gui.MortarGUIListener;
+import com.strikesenchantcore.commands.MortarCommand;
 
 // +++ Import for local StrikesLicenseManager (COMMENTED OUT FOR DEV) +++
 // import com.strikesenchantcore.util.StrikesLicenseManager;
@@ -61,6 +64,7 @@ public final class EnchantCore extends JavaPlugin {
     private BlackholeManager blackholeManager;
     private CrystalManager crystalManager;
     private CrystalsGUIListener crystalsGUIListener;
+    private MortarManager mortarManager;
 
 
 
@@ -106,6 +110,7 @@ public final class EnchantCore extends JavaPlugin {
         this.blackholeManager = new BlackholeManager(this);
         this.playerDataManager = new PlayerDataManager(this);
         this.crystalManager = new CrystalManager(this);
+        this.mortarManager = new MortarManager(this);
 
         // Load all .yml files into the managers
         log.info("Loading all configurations...");
@@ -187,6 +192,11 @@ public final class EnchantCore extends JavaPlugin {
 
         getLogger().info("Saving player data...");
 
+        if (mortarManager != null) {
+            // MortarManager cleanup if needed
+        }
+        this.mortarManager = null;
+
 
         if (blackholeManager != null) {
             blackholeManager.cleanupAllBlackholes();
@@ -265,6 +275,7 @@ public final class EnchantCore extends JavaPlugin {
         pm.registerEvents(new OverchargeListener(this), this);
         crystalsGUIListener = new CrystalsGUIListener(this);
         pm.registerEvents(crystalsGUIListener, this);
+        pm.registerEvents(new MortarGUIListener(this), this);
     }
 
     private void registerCommands() {
@@ -301,6 +312,15 @@ public final class EnchantCore extends JavaPlugin {
             gemsCmd.setExecutor(gemsExecutor);
             gemsCmd.setTabCompleter(gemsExecutor);
         } else { getLogger().log(Level.SEVERE, "Command 'gems' not found in plugin.yml!"); }
+
+        PluginCommand mortarCmd = getCommand("mortar");
+        if (mortarCmd != null) {
+            MortarCommand mortarExecutor = new MortarCommand(this);
+            mortarCmd.setExecutor(mortarExecutor);
+            mortarCmd.setTabCompleter(mortarExecutor);
+        } else {
+            getLogger().log(Level.SEVERE, "Command 'mortar' not found in plugin.yml!");
+        }
 
         // --- ADDED: The new Points command is now registered here in the correct order ---
         PluginCommand pointsCmd = getCommand("points");
@@ -384,5 +404,10 @@ public final class EnchantCore extends JavaPlugin {
     @Nullable
     public SkinConfig getSkinConfig() {
         return skinConfig;
+    }
+
+    @Nullable
+    public MortarManager getMortarManager() {
+        return mortarManager;
     }
 }

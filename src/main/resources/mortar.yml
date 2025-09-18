@@ -1,0 +1,128 @@
+mortar:
+  # General settings
+  enabled: true
+  max_level: 10
+
+  # Base settings
+  base_cooldown: 120 # seconds
+  cooldown_reduction_per_level: 5 # seconds
+  minimum_cooldown: 30 # seconds
+  absolute_minimum_cooldown: 10 # seconds
+
+  boost_duration: 10 # seconds
+  base_multiplier: 1.5
+  multiplier_increase_per_level: 0.1
+
+  # Activation chances (per second)
+  base_activation_chance: 0.001 # 0.1% per second
+  activation_chance_per_level: 0.001 # Additional 0.1% per level
+
+  # Enchant triggering
+  enchants_triggered_count: 3
+
+  # Level requirements
+  requirements:
+    level_1:
+      pickaxe_level: 5
+      blocks_mined: 1000
+      tokens: 5000
+    level_2:
+      pickaxe_level: 10
+      blocks_mined: 5000
+      tokens: 15000
+    level_3:
+      pickaxe_level: 15
+      blocks_mined: 15000
+      tokens: 35000
+    level_4:
+      pickaxe_level: 20
+      blocks_mined: 35000
+      tokens: 75000
+    level_5:
+      pickaxe_level: 25
+      blocks_mined: 75000
+      tokens: 150000
+    level_6:
+      pickaxe_level: 30
+      blocks_mined: 150000
+      tokens: 300000
+    level_7:
+      pickaxe_level: 35
+      blocks_mined: 300000
+      tokens: 600000
+    level_8:
+      pickaxe_level: 40
+      blocks_mined: 600000
+      tokens: 1200000
+    level_9:
+      pickaxe_level: 45
+      blocks_mined: 1200000
+      tokens: 2500000
+    level_10:
+      pickaxe_level: 50
+      blocks_mined: 2500000
+      tokens: 5000000
+
+  # Upgrade settings
+  upgrades:
+    multiplier:
+      enabled: true
+      max_level: 10
+      multiplier_per_level: 0.2
+      base_cost: 10000
+      cost_multiplier: 1.5 # Cost increases by this factor each level
+
+    cooldown_condenser:
+      enabled: true
+      max_level: 5
+      reduction_per_level: 2 # seconds reduced per level
+      base_cost: 25000
+      cost_multiplier: 1.3
+
+    lightning_strike:
+      enabled: true
+      max_level: 5
+      base_chance: 0.01 # 1% base chance
+      chance_increase_per_level: 0.005 # 0.5% increase per level
+      base_cost: 50000
+      cost_multiplier: 1.4
+
+    selective_fire:
+      enabled: true
+      max_level: 5
+      base_high_tier_chance: 0.3 # 30% base chance for high-tier enchants
+      chance_increase_per_level: 0.1 # 10% increase per level
+      high_tier_threshold: 100 # Enchants with max level > this are considered high-tier
+      base_cost: 75000
+      cost_multiplier: 1.5
+
+  # Messages
+  messages:
+    activation: "&6&lMORTAR ACTIVATED! &e%enchant_count% enchants triggered!"
+    boost: "&eBoost: &6%multiplier%x &efor %duration% seconds!"
+    lightning_strike: "&d&lLIGHTNING STRIKE! &eDouble activation!"
+    upgrade_success: "&6&lMORTAR UPGRADED! &eLevel: &6%level%"
+    upgrade_purchased: "&6&l%upgrade% UPGRADED! &eLevel: &6%level%"
+    cooldown_remaining: "&eMortar Cooldown: &c%time%"
+    ready: "&eMortar Status: &aReady!"
+
+  # GUI Settings
+  gui:
+    title: "&6&lMortar Workshop"
+    size: 54
+
+    # Item materials
+    materials:
+      mortar_unlocked: TNT
+      mortar_locked: BARRIER
+      upgrade_available: EMERALD
+      upgrade_unavailable: REDSTONE_BLOCK
+      upgrade_maxed: EMERALD_BLOCK
+      stats: BOOK
+      filler: GRAY_STAINED_GLASS_PANE
+
+      # Upgrade specific materials
+      multiplier: GOLD_INGOT
+      cooldown_condenser: CLOCK
+      lightning_strike: LIGHTNING_ROD
+      selective_fire: TARGET

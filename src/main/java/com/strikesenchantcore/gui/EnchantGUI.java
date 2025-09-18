@@ -176,11 +176,13 @@ public class EnchantGUI implements InventoryHolder {
                     List.of("&7Click to view pickaxe skins"), 0, false);
             inventory.setItem(45, pickaxeSkinsButton);
         }
+        // START OF MODIFICATION
         if (47 < inventory.getSize()) {
-            ItemStack mortarButton = createGuiItemHelper(Material.BARRIER, "&6&lMortar",
-                    List.of("&7Click to view mortar options", "&c&lUNDER DEVELOPMENT"), 0, false);
+            ItemStack mortarButton = createGuiItemHelper(Material.TNT, "&6&lMortar",
+                    List.of("&7Click to access mortar upgrades", "&7and view activation status"), 0, false);
             inventory.setItem(47, mortarButton);
         }
+        // END OF MODIFICATION
         if (51 < inventory.getSize()) {
             ItemStack crystalsButton = createGuiItemHelper(Material.BARRIER, "&6&lCrystals",
                     List.of("&7Click to view crystals", "&c&lUNDER DEVELOPMENT"), 0, false);
@@ -455,8 +457,20 @@ public class EnchantGUI implements InventoryHolder {
 
         // Clicks any other menu button (Tokens, Skins, etc.)
         if (isMenuButtonSlot(slot)) {
-            playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
-            if (slot == 45) { // Your original skins button logic
+            // START OF MODIFICATION
+            if (slot == 47) { // Mortar button
+                playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+                try {
+                    new MortarGUI(plugin, player).open();
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, "Error opening MortarGUI for " + player.getName(), e);
+                    ChatUtil.sendMessage(player, "&cError opening mortar menu.");
+                    player.closeInventory();
+                }
+            }
+            // END OF MODIFICATION
+            else if (slot == 45) { // Your original skins button logic
+                playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
                 try {
                     new PickaxeSkinsGUI(plugin, player, playerData, this.pickaxe).open();
                 } catch (Exception e) {
@@ -465,6 +479,7 @@ public class EnchantGUI implements InventoryHolder {
                     player.closeInventory();
                 }
             } else {
+                playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
                 if (slot == 51) { // Crystals button
                     new CrystalsGUI(plugin, player).open();
                 } else {
@@ -475,6 +490,7 @@ public class EnchantGUI implements InventoryHolder {
         }
         return false;
     }
+
 
     /** Opens the GUI inventory for the player. */
     public void open() {
