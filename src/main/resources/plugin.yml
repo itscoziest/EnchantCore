@@ -4,7 +4,7 @@ main: com.strikesenchantcore.EnchantCore
 api-version: '1.13'
 authors: [StrikesDev, ItsCoziest]
 description: Core plugin for custom enchantments and pickaxe leveling.
-softdepend: [Vault, PlaceholderAPI, WorldGuard, ItemsAdder]
+softdepend: [Vault, PlaceholderAPI, WorldGuard, ItemsAdder, MythicMobs]
 
 commands:
   enchantcore:

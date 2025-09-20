@@ -20,6 +20,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
+import com.strikesenchantcore.listeners.PinataListener;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
@@ -466,32 +467,118 @@ public class BlockBreakListener implements Listener {
         }
     }
 
-    private void handleLootPinata(Player player, Block block, int level, ConfigurationSection settings, PlayerData playerData, BlockBreakEvent event) {
-        if (settings == null) return;
-        if (PinataListener.hasActivePinata(player.getUniqueId())) {
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Handles the Lootpinata enchantment activation.
+     * Spawns a MythicMobs piñata instead of a block.
+     */
+    private void handleLootpinata(Player player, Location impactLocation, ItemStack pickaxe, int level, ConfigurationSection settings, PlayerData playerData) {
+        final boolean debug = isDebugMode();
+
+        if (settings == null) {
+            logger.warning("[Lootpinata] Cannot activate for " + player.getName() + ": ConfigurationSection is null!");
             return;
         }
 
-        event.setCancelled(true);
-
-        Material pinataMaterial = Material.matchMaterial(settings.getString("PinataMaterial", "MELON"));
-        if (pinataMaterial == null) pinataMaterial = Material.MELON;
-
-        int health = settings.getInt("PinataHealthBase", 10) + (settings.getInt("PinataHealthIncreasePerLevel", 2) * (level - 1));
-        ConfigurationSection rewards = settings.getConfigurationSection("Rewards");
-        int timeout = settings.getInt("TimeoutSeconds", 60);
-
-        block.setType(pinataMaterial);
-
-        PinataListener.activePinatas.put(block.getLocation(), new PinataListener.PinataData(player.getUniqueId(), health, rewards, timeout));
-
-        if (playerData.isShowEnchantMessages()) {
-            ChatUtil.sendMessage(player, settings.getString("ActivationMessage", "&d&lPINATA! &eA Loot Pinata has appeared!"));
+        // Check if player already has an active piñata
+        if (PinataListener.hasActivePinata(player.getUniqueId())) {
+            if (debug) logger.info("[Lootpinata] Player " + player.getName() + " already has an active piñata. Skipping.");
+            if (playerData.isShowEnchantMessages()) {
+                String activeMessage = settings.getString("AlreadyActiveMessage", "&cYou already have an active loot piñata!");
+                ChatUtil.sendMessage(player, activeMessage);
+            }
+            return;
         }
-        if (playerData.isShowEnchantSounds()) {
-            player.playSound(block.getLocation(), Sound.ENTITY_VILLAGER_CELEBRATE, 1.0f, 1.0f);
+
+        // Load configuration
+        String mobType = settings.getString("MythicMobType", "pinata");
+        int baseHealth = settings.getInt("BaseHealth", 5);
+        int healthPerLevel = settings.getInt("HealthPerLevel", 2);
+        int timeoutSeconds = settings.getInt("TimeoutSeconds", 30);
+        double spawnHeight = settings.getDouble("SpawnHeight", 2.0);
+
+        // Calculate final health based on level
+        int finalHealth = baseHealth + (Math.max(0, level - 1) * healthPerLevel);
+
+        // Calculate spawn location (slightly above the broken block)
+        Location spawnLocation = impactLocation.clone().add(0.5, spawnHeight, 0.5);
+
+        // Get the rewards section
+        ConfigurationSection rewardsSection = settings.getConfigurationSection("Rewards");
+        if (rewardsSection == null) {
+            logger.warning("[Lootbox] No 'Rewards' section found in lootbox configuration!");
+            return;
+        }
+
+        // Get the PinataListener instance from the plugin
+        PinataListener pinataListener = plugin.getPinataListener();
+
+        if (pinataListener == null) {
+            logger.severe("[Lootpinata] PinataListener not found! Cannot spawn piñata.");
+            return;
+        }
+
+        // Spawn the MythicMobs piñata
+        boolean spawned = pinataListener.spawnModelEnginePinata(
+                spawnLocation,
+                player.getUniqueId(),
+                rewardsSection,
+                finalHealth,
+                timeoutSeconds,
+                mobType
+        );
+
+        if (spawned) {
+            // Success feedback
+            if (playerData.isShowEnchantMessages()) {
+                String spawnMessage = settings.getString("SpawnMessage", "&a&lLoot Piñata! &eHit it %health% times to break it!")
+                        .replace("%health%", String.valueOf(finalHealth))
+                        .replace("%timeout%", String.valueOf(timeoutSeconds));
+                ChatUtil.sendMessage(player, spawnMessage);
+            }
+
+            if (playerData.isShowEnchantSounds()) {
+                playSoundAt(player, spawnLocation, Sound.ENTITY_DONKEY_HURT, 1.0f, 1.2f);
+            }
+
+            // Spawn some particles at the spawn location
+            spawnLocation.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, spawnLocation, 20, 1.0, 1.0, 1.0);
+
+            if (debug) {
+                logger.info("[Lootpinata] Successfully spawned " + mobType + " for " + player.getName() +
+                        " with " + finalHealth + " health at " + spawnLocation);
+            }
+        } else {
+            // Failed to spawn
+            if (playerData.isShowEnchantMessages()) {
+                String failMessage = settings.getString("FailMessage", "&cFailed to spawn loot piñata! Try again later.");
+                ChatUtil.sendMessage(player, failMessage);
+            }
+
+            if (debug) {
+                logger.warning("[Lootpinata] Failed to spawn piñata for " + player.getName());
+            }
         }
     }
+
+
+
+
+
+
+
+
 
     private List<Block> findTopLayerBlocks(Location center, int radius, boolean breakBedrock) {
         List<Block> blocks = new ArrayList<>();
@@ -1223,7 +1310,9 @@ public class BlockBreakListener implements Listener {
                     case "salary":          handleSalary(player, level, settings, playerData); break;
                     case "voucherfinder":   handleVoucherFinder(player, level, settings, playerData); break;
                     case "blackhole":       handleBlackhole(player, originalBlock.getLocation(), pickaxe, level, settings, playerData); break;
-                    case "lootpinata":      handleLootPinata(player, originalBlock, level, settings, playerData, event); break;
+                    case "lootpinata":
+                        handleLootpinata(player, originalBlock.getLocation(), pickaxe, level, settings, playerData);
+                        break;
                     case "jackpot":         handleJackpot(player, level, settings, playerData); break;
                     case "dragonburst":     handleDragonBurst(player, originalBlock.getLocation(), pickaxe, level, settings, playerData); break;
                     case "frostbitefury":   handleFrostbiteFury(player, pickaxe, level, settings, playerData); break;
@@ -1242,7 +1331,7 @@ public class BlockBreakListener implements Listener {
         return isAreaEffectEnchant(key) ||
                 key.equals("charity") || key.equals("blessing") || key.equals("tokenator") ||
                 key.equals("keyfinder") || key.equals("blockbooster") || key.equals("salary") ||
-                key.equals("voucherfinder") || key.equals("blackhole");
+                key.equals("voucherfinder") || key.equals("blackhole") || key.equals("lootpinata");
     }
 
     private void handleNukeTNT(Player player, Location impactLocation, ItemStack pickaxe, int level, ConfigurationSection settings, PlayerData playerData) {

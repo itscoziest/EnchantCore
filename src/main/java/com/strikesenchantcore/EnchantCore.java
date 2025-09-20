@@ -21,6 +21,7 @@ import com.strikesenchantcore.managers.CrystalManager;
 import com.strikesenchantcore.managers.MortarManager;
 import com.strikesenchantcore.gui.MortarGUIListener;
 import com.strikesenchantcore.commands.MortarCommand;
+import com.strikesenchantcore.util.MythicMobsHook;
 // --- ADDED IMPORTS ---
 import com.strikesenchantcore.managers.AttachmentManager;
 import com.strikesenchantcore.gui.AttachmentsGUIListener;
@@ -70,7 +71,12 @@ public final class EnchantCore extends JavaPlugin {
     private CrystalManager crystalManager;
     private CrystalsGUIListener crystalsGUIListener;
     private MortarManager mortarManager;
-    private AttachmentManager attachmentManager; // ADDED FIELD
+    private AttachmentManager attachmentManager;
+    private MythicMobsHook mythicMobsHook;
+    private PinataListener pinataListener;
+    public PinataListener getPinataListener() {
+        return pinataListener;
+    }
 
     // +++ License Configuration (TEMPORARILY DISABLED FOR DEVELOPMENT) +++
     // All license-related code is commented out below
@@ -128,6 +134,8 @@ public final class EnchantCore extends JavaPlugin {
         this.enchantRegistry = new EnchantRegistry(this);
         this.enchantRegistry.loadEnchantsFromConfig();
 
+
+
         // --- STEP 2: SETUP HOOKS ---
         log.info("Setting up hooks...");
         this.vaultHook = new VaultHook(this);
@@ -160,6 +168,16 @@ public final class EnchantCore extends JavaPlugin {
         playerDataManager.loadOnlinePlayers();
 
         log.info("=== EnchantCore Enabled Successfully (DEV MODE) ===");
+
+
+        // Initialize MythicMobs integration
+        this.mythicMobsHook = new MythicMobsHook(this);
+        if (mythicMobsHook.isEnabled()) {
+            getLogger().info("MythicMobs integration enabled for loot piñatas!");
+        } else {
+            getLogger().warning("MythicMobs not found - loot piñata enchant will not work!");
+        }
+
     }
 
     @Override
@@ -279,7 +297,8 @@ public final class EnchantCore extends JavaPlugin {
         pm.registerEvents(new PickaxeSkinsGUIListener(this), this); // Add this line
         pm.registerEvents(new ProtectionListeners(this), this);
         pm.registerEvents(new PlayerQuitListener(this), this);
-        pm.registerEvents(new PinataListener(this), this);
+        this.pinataListener = new PinataListener(this);
+        pm.registerEvents(this.pinataListener, this);
         pm.registerEvents(new OverchargeListener(this), this);
         crystalsGUIListener = new CrystalsGUIListener(this);
         pm.registerEvents(crystalsGUIListener, this);
@@ -436,5 +455,9 @@ public final class EnchantCore extends JavaPlugin {
     @Nullable
     public AttachmentManager getAttachmentManager() {
         return attachmentManager;
+    }
+
+    public MythicMobsHook getMythicMobsHook() {
+        return mythicMobsHook;
     }
 }

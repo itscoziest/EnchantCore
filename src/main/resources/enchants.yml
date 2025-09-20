@@ -491,66 +491,94 @@ enchants:
 
   lootpinata:
     Enabled: true
-    Currency: GEMS
     RawName: "lootpinata"
-    Name: "&d&lL&e&lo&a&lo&b&lt &c&lP&6&li&e&ln&a&la&b&lt&d&la"
-    GuiName: "&d&lLoot &ePinata"
-    Description:
-      - "&7Rarely turns a broken block into a"
-      - "&7Loot Pinata! Hit it repeatedly for"
-      - "&7a shower of valuable rewards."
-    Material: MELON
+    Name: "&6&lLoot Piñata"
+    GuiName: "&6&lLoot Piñata &7(Level %level%)"
+    Material: "CAKE"
     CustomModelData: 0
+    Description:
+      - "&7Spawns a mystical piñata that"
+      - "&7drops amazing rewards when hit!"
+    lore:
+      - "&7%description%"
+      - ""
+      - "&eChance: &f%chance%%"
+      - "&eHealth: &f%health% hits"
+      - "&eTimeout: &f%timeout%s"
+      - ""
+      - "&7The piñata will despawn if not"
+      - "&7broken within the time limit!"
     InGuiSlot: 29
     MaxLevel: 5
-    Cost: 75000.0
-    IncreaseCostBy: 35000.0
+    Cost: 1000.0
+    IncreaseCostBy: 500.0
     CostFormula: "LINEAR"
-    PickaxeLevelRequired: 20
+    PickaxeLevelRequired: 10
     Settings:
-      ChanceBase: 0.001
-      ChanceIncreasePerLevel: 0.0005
-      PinataMaterial: "MELON"
-      PinataHealthBase: 10
-      PinataHealthIncreasePerLevel: 2
-      TimeoutSeconds: 60 # ADDED: How many seconds until the pinata disappears
-      ActivationMessage: "&d&lPINATA! &eA Loot Pinata has appeared! Hit it!"
-      UnluckyMessage: "&cSo unlucky! The pinata was empty..."
-      TimeoutMessage: "&eThe loot pinata got away..." # ADDED: Message for when it disappears
+      ChanceBase: 0.05  # 5% base chance
+      ChanceIncreasePerLevel: 0.02  # +2% per level
+      # MythicMobs Configuration
+      MythicMobType: "pinata"  # Name of your MythicMobs mob (from pinata.yml)
+
+      # Piñata Health (number of hits to break)
+      BaseHealth: 3
+      HealthPerLevel: 2  # +2 hits per enchant level
+
+      # Spawn Configuration
+      SpawnHeight: 2.0  # How high above the block to spawn
+      TimeoutSeconds: 30  # How long before piñata despawns
+
+      # Messages
+      SpawnMessage: "&a&lLoot Piñata! &eHit it &f%health% &etimes to break it! (&c%timeout%s timeout&e)"
+      AlreadyActiveMessage: "&cYou already have an active loot piñata!"
+      TimeoutMessage: "&eThe loot piñata got away..."
+      FailMessage: "&cFailed to spawn loot piñata! Try again later."
+
+      # Rewards Configuration
       Rewards:
-        diamond_block:
-          Chance: 0.50
-          Type: "ITEM"
-          Material: "DIAMOND_BLOCK"
-          Amount: 1
-          Message: "&aYou found a &bDiamond Block&a!"
-        gold_rush:
-          Chance: 0.75
-          Type: "ITEM"
-          Material: "GOLD_INGOT"
-          Amount: 16
-          Message: "&aYou found &e16 Gold Ingots&a!"
-        rare_key:
-          Chance: 0.10
+        common_money:
           Type: "COMMAND"
-          Command: "crate givekey %player% rare 1"
-          Message: "&eYou found a &6Rare Key&e!"
+          Command: "eco give %player% 100"
+          Message: "&a+$100!"
+          Chance: 0.8  # 80% chance
+
+        rare_money:
+          Type: "COMMAND"
+          Command: "eco give %player% 500"
+          Message: "&6+$500!"
+          Chance: 0.3  # 30% chance
+
         epic_money:
-          Chance: 0.25
           Type: "COMMAND"
-          Command: "eco give %player% 10000"
-          Message: "&aYou found &e$10,000&a!"
-    lore:
-      - "&7Chance: &d%chance%%"
-      - "&7Health: &d%pinata_health% hits"
-      - " "
-      - "&dRarely turns a broken block into a"
-      - "&dLoot Pinata! Hit it repeatedly for"
-      - "&da shower of valuable rewards."
-      - " "
-      - "&7Current Level: &f%current_level%"
-      - "&7Max Level: &f%max_level%"
-      - "&7Cost: &f%cost%"
+          Command: "eco give %player% 1000"
+          Message: "&d+$1000!"
+          Chance: 0.1  # 10% chance
+
+        diamonds:
+          Type: "ITEM"
+          Material: "DIAMOND"
+          Amount: 3
+          Message: "&b+3 Diamonds!"
+          Chance: 0.25  # 25% chance
+
+        emeralds:
+          Type: "ITEM"
+          Material: "EMERALD"
+          Amount: 5
+          Message: "&a+5 Emeralds!"
+          Chance: 0.2  # 20% chance
+
+        tokens:
+          Type: "COMMAND"
+          Command: "tokens give %player% 50"
+          Message: "&e+50 Tokens!"
+          Chance: 0.4  # 40% chance
+
+        keys:
+          Type: "COMMAND"
+          Command: "crates givekey %player% vote 1"
+          Message: "&5+1 Vote Key!"
+          Chance: 0.15  # 15% chance
   overcharge:
     Enabled: true
     Currency: GEMS
