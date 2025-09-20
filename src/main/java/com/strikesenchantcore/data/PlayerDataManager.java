@@ -2,7 +2,9 @@ package com.strikesenchantcore.data;
 
 import com.strikesenchantcore.EnchantCore;
 import com.strikesenchantcore.config.PickaxeConfig;
+import com.strikesenchantcore.managers.AttachmentManager;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -23,7 +25,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.HashMap;
 import java.util.Map;
-import org.bukkit.configuration.ConfigurationSection;
 
 /**
  * Manages loading/saving PlayerData from individual YAML files.
@@ -119,6 +120,25 @@ public class PlayerDataManager {
                     }
                 }
 
+                // Load mortar data - ADD THIS SECTION
+                data.setMortarLevel(playerConfig.getInt("mortar.level", 0));
+                data.setMortarLastActivation(playerConfig.getLong("mortar.lastActivation", 0L));
+                data.setMortarBoostEndTime(playerConfig.getLong("mortar.boostEndTime", 0L));
+                data.setMortarBoostMultiplier(playerConfig.getDouble("mortar.boostMultiplier", 1.0));
+
+                // Load mortar upgrades
+                ConfigurationSection mortarUpgradesSection = playerConfig.getConfigurationSection("mortar.upgrades");
+                if (mortarUpgradesSection != null) {
+                    for (String key : mortarUpgradesSection.getKeys(false)) {
+                        int mortarLevel = mortarUpgradesSection.getInt(key, 0);
+                        if (mortarLevel > 0) {
+                            data.setMortarUpgradeLevel(key, mortarLevel);
+                        }
+                    }
+                }
+
+                loadAttachmentData(playerConfig, playerUUID); // ADDED THIS LINE
+
                 if (debug) logger.fine("[PlayerData] Loaded data for " + playerUUID + " from file.");
 
             } catch (IOException | InvalidConfigurationException e) {
@@ -185,6 +205,24 @@ public class PlayerDataManager {
             saveCrystalData(playerConfig, data);
             // --- END FIXED ---
 
+            // Save mortar data - ADD THIS SECTION
+            playerConfig.set("mortar.level", data.getMortarLevel());
+            playerConfig.set("mortar.lastActivation", data.getMortarLastActivation());
+            playerConfig.set("mortar.boostEndTime", data.getMortarBoostEndTime());
+            playerConfig.set("mortar.boostMultiplier", data.getMortarBoostMultiplier());
+
+            // Save mortar upgrades
+            Map<String, Integer> mortarUpgrades = data.getMortarUpgrades();
+            if (!mortarUpgrades.isEmpty()) {
+                for (Map.Entry<String, Integer> entry : mortarUpgrades.entrySet()) {
+                    playerConfig.set("mortar.upgrades." + entry.getKey(), entry.getValue());
+                }
+            } else {
+                playerConfig.set("mortar.upgrades", null);
+            }
+
+            saveAttachmentData(playerConfig, data.getPlayerUUID()); // ADDED THIS LINE
+
             try {
                 if (!dataFolder.exists()) {
                     if (!dataFolder.mkdirs()) {
@@ -192,6 +230,7 @@ public class PlayerDataManager {
                         return;
                     }
                 }
+                playerConfig.set("test.timestamp", System.currentTimeMillis());
                 playerConfig.save(playerFile);
                 if (debug && async) logger.finest("[PlayerData] Async save complete for " + playerUUID);
             } catch (IOException e) {
@@ -249,6 +288,89 @@ public class PlayerDataManager {
 
         if (plugin.getConfigManager().isDebugMode()) {
             logger.info("DEBUG: Saved crystal data - Storage: " + crystals + ", Equipped: " + equipped);
+        }
+    }
+
+    public void debugSaveTest(UUID playerId) {
+        PlayerData data = getPlayerData(playerId);
+        if (data == null) {
+            logger.info("DEBUG: No player data found for " + playerId);
+            return;
+        }
+
+        logger.info("DEBUG: Saving player data for " + playerId);
+        logger.info("DEBUG: Mortar level: " + data.getMortarLevel());
+        logger.info("DEBUG: Tokens: " + data.getTokens());
+
+        savePlayerData(data, false); // Force sync save
+        logger.info("DEBUG: Save completed");
+    }
+
+    private void saveAttachmentData(ConfigurationSection section, UUID playerId) {
+        plugin.getLogger().info("DEBUG: saveAttachmentData called for player " + playerId);
+        AttachmentManager attachmentManager = plugin.getAttachmentManager();
+        if (attachmentManager == null) return;
+
+        AttachmentManager.AttachmentStorage storage = attachmentManager.getPlayerStorage(playerId);
+
+        // Clear existing attachment data
+        section.set("attachments", null);
+
+        // Save stored attachments
+        Map<Integer, Integer> attachments = storage.getAllAttachments();
+        for (Map.Entry<Integer, Integer> entry : attachments.entrySet()) {
+            if (entry.getValue() > 0) {
+                section.set("attachments.stored.tier_" + entry.getKey(), entry.getValue());
+            }
+        }
+
+        // Save equipped attachments
+        Map<Integer, Integer> equipped = storage.getEquippedMap();
+        for (Map.Entry<Integer, Integer> entry : equipped.entrySet()) {
+            section.set("attachments.equipped.slot_" + entry.getKey(), entry.getValue());
+        }
+    }
+
+    private void loadAttachmentData(ConfigurationSection section, UUID playerId) {
+        AttachmentManager attachmentManager = plugin.getAttachmentManager();
+        if (attachmentManager == null || !section.contains("attachments")) return;
+
+        AttachmentManager.AttachmentStorage storage = attachmentManager.getPlayerStorage(playerId);
+
+        // Load stored attachments
+        if (section.contains("attachments.stored")) {
+            ConfigurationSection storedSection = section.getConfigurationSection("attachments.stored");
+            for (String key : storedSection.getKeys(false)) {
+                if (key.startsWith("tier_")) {
+                    try {
+                        int tier = Integer.parseInt(key.substring(5));
+                        int amount = storedSection.getInt(key, 0);
+                        if (amount > 0) {
+                            storage.addAttachment(tier, amount);
+                        }
+                    } catch (NumberFormatException e) {
+                        plugin.getLogger().warning("Invalid attachment tier in save data: " + key);
+                    }
+                }
+            }
+        }
+
+        // Load equipped attachments
+        if (section.contains("attachments.equipped")) {
+            ConfigurationSection equippedSection = section.getConfigurationSection("attachments.equipped");
+            for (String key : equippedSection.getKeys(false)) {
+                if (key.startsWith("slot_")) {
+                    try {
+                        int slot = Integer.parseInt(key.substring(5));
+                        int tier = equippedSection.getInt(key, 0);
+                        if (tier > 0 && slot >= 0 && slot < AttachmentManager.MAX_EQUIPPED_ATTACHMENTS) {
+                            storage.setEquippedAttachment(slot, tier);
+                        }
+                    } catch (NumberFormatException e) {
+                        plugin.getLogger().warning("Invalid attachment slot in save data: " + key);
+                    }
+                }
+            }
         }
     }
 
@@ -321,3 +443,4 @@ public class PlayerDataManager {
         }
     }
 }
+

@@ -54,6 +54,20 @@ public class MortarCommand implements CommandExecutor, TabCompleter {
             case "stats":
                 showStats(player);
                 break;
+            case "testsave":
+                if (plugin.getMortarManager() != null) {
+                    com.strikesenchantcore.managers.MortarManager.MortarData mortarData = plugin.getMortarManager().getMortarData(player.getUniqueId());
+                    mortarData.setLevel(3);
+                    ChatUtil.sendMessage(player, "&aMortar level set to 3 in manager");
+
+                    // Force save
+                    com.strikesenchantcore.data.PlayerData pd = plugin.getPlayerDataManager().getPlayerData(player.getUniqueId());
+                    if (pd != null) {
+                        plugin.getPlayerDataManager().savePlayerData(pd, false);
+                        ChatUtil.sendMessage(player, "&aForced player data save");
+                    }
+                }
+                break;
             default:
                 sendUsage(player);
                 break;

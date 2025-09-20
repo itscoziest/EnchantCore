@@ -31,6 +31,10 @@ public class PlayerData {
     private double mortarBoostMultiplier = 1.0;
     private final Map<String, Integer> mortarUpgrades = new HashMap<>();
 
+    // Attachment storage fields
+    private final Map<Integer, Integer> attachmentStorage = new HashMap<>(); // tier -> count
+    private final Map<Integer, Integer> equippedAttachments = new HashMap<>(); // slot -> tier
+
     // Toggleable settings
     private boolean showEnchantMessages = true;
     private boolean showEnchantSounds = true;
@@ -252,4 +256,58 @@ public class PlayerData {
         this.equippedCrystals = equippedCrystals;
     }
 
+    // --- Attachment Methods ---
+    public Map<Integer, Integer> getAttachmentStorage() {
+        return new HashMap<>(attachmentStorage);
+    }
+
+    public void setAttachmentCount(int tier, int count) {
+        if (count <= 0) {
+            attachmentStorage.remove(tier);
+        } else {
+            attachmentStorage.put(tier, count);
+        }
+    }
+
+    public int getAttachmentCount(int tier) {
+        return attachmentStorage.getOrDefault(tier, 0);
+    }
+
+    public void addAttachmentCount(int tier, int amount) {
+        int current = getAttachmentCount(tier);
+        setAttachmentCount(tier, current + amount);
+    }
+
+    public boolean removeAttachmentCount(int tier, int amount) {
+        int current = getAttachmentCount(tier);
+        if (current >= amount) {
+            setAttachmentCount(tier, current - amount);
+            return true;
+        }
+        return false;
+    }
+
+    public Map<Integer, Integer> getEquippedAttachments() {
+        return new HashMap<>(equippedAttachments);
+    }
+
+    public void setEquippedAttachment(int slot, Integer tier) {
+        if (tier == null) {
+            equippedAttachments.remove(slot);
+        } else {
+            equippedAttachments.put(slot, tier);
+        }
+    }
+
+    public Integer getEquippedAttachment(int slot) {
+        return equippedAttachments.get(slot);
+    }
+
+    public void clearAttachmentStorage() {
+        attachmentStorage.clear();
+    }
+
+    public void clearEquippedAttachments() {
+        equippedAttachments.clear();
+    }
 }

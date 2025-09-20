@@ -21,6 +21,11 @@ import com.strikesenchantcore.managers.CrystalManager;
 import com.strikesenchantcore.managers.MortarManager;
 import com.strikesenchantcore.gui.MortarGUIListener;
 import com.strikesenchantcore.commands.MortarCommand;
+// --- ADDED IMPORTS ---
+import com.strikesenchantcore.managers.AttachmentManager;
+import com.strikesenchantcore.gui.AttachmentsGUIListener;
+import com.strikesenchantcore.commands.AttachmentsCommand;
+import com.strikesenchantcore.listeners.AttachmentBoxListener;
 
 // +++ Import for local StrikesLicenseManager (COMMENTED OUT FOR DEV) +++
 // import com.strikesenchantcore.util.StrikesLicenseManager;
@@ -65,8 +70,7 @@ public final class EnchantCore extends JavaPlugin {
     private CrystalManager crystalManager;
     private CrystalsGUIListener crystalsGUIListener;
     private MortarManager mortarManager;
-
-
+    private AttachmentManager attachmentManager; // ADDED FIELD
 
     // +++ License Configuration (TEMPORARILY DISABLED FOR DEVELOPMENT) +++
     // All license-related code is commented out below
@@ -111,6 +115,7 @@ public final class EnchantCore extends JavaPlugin {
         this.playerDataManager = new PlayerDataManager(this);
         this.crystalManager = new CrystalManager(this);
         this.mortarManager = new MortarManager(this);
+        this.attachmentManager = new AttachmentManager(this); // ADDED INITIALIZATION
 
         // Load all .yml files into the managers
         log.info("Loading all configurations...");
@@ -151,7 +156,6 @@ public final class EnchantCore extends JavaPlugin {
         // --- STEP 4: START TASKS AND OTHER LOGIC ---
         initializeMetrics();
         startRepeatingTasks();
-
 
         playerDataManager.loadOnlinePlayers();
 
@@ -197,6 +201,11 @@ public final class EnchantCore extends JavaPlugin {
         }
         this.mortarManager = null;
 
+        // ADDED ATTACHMENT MANAGER CLEANUP
+        if (attachmentManager != null) {
+            // AttachmentManager cleanup if needed
+        }
+        this.attachmentManager = null;
 
         if (blackholeManager != null) {
             blackholeManager.cleanupAllBlackholes();
@@ -235,7 +244,6 @@ public final class EnchantCore extends JavaPlugin {
         instance = null;
         getLogger().info("Cleanup complete.");
         getLogger().info("=== EnchantCore Disabled ===");
-
     }
 
     private void registerListeners() {
@@ -276,6 +284,9 @@ public final class EnchantCore extends JavaPlugin {
         crystalsGUIListener = new CrystalsGUIListener(this);
         pm.registerEvents(crystalsGUIListener, this);
         pm.registerEvents(new MortarGUIListener(this), this);
+        // ADDED ATTACHMENT LISTENERS
+        pm.registerEvents(new AttachmentsGUIListener(this), this);
+        pm.registerEvents(new AttachmentBoxListener(this), this);
     }
 
     private void registerCommands() {
@@ -320,6 +331,16 @@ public final class EnchantCore extends JavaPlugin {
             mortarCmd.setTabCompleter(mortarExecutor);
         } else {
             getLogger().log(Level.SEVERE, "Command 'mortar' not found in plugin.yml!");
+        }
+
+        // ADDED ATTACHMENTS COMMAND
+        PluginCommand attachmentsCmd = getCommand("attachments");
+        if (attachmentsCmd != null) {
+            AttachmentsCommand attachmentsExecutor = new AttachmentsCommand(this);
+            attachmentsCmd.setExecutor(attachmentsExecutor);
+            attachmentsCmd.setTabCompleter(attachmentsExecutor);
+        } else {
+            getLogger().log(Level.SEVERE, "Command 'attachments' not found in plugin.yml!");
         }
 
         // --- ADDED: The new Points command is now registered here in the correct order ---
@@ -409,5 +430,11 @@ public final class EnchantCore extends JavaPlugin {
     @Nullable
     public MortarManager getMortarManager() {
         return mortarManager;
+    }
+
+    // ADDED GETTER
+    @Nullable
+    public AttachmentManager getAttachmentManager() {
+        return attachmentManager;
     }
 }

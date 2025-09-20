@@ -54,6 +54,12 @@ commands:
     aliases: [ m, mort ]
     permission: enchantcore.mortar.use
 
+  attachments:
+    description: "Access and manage your Attachment storage."
+    usage: "/attachments [gui|mergeall|stats|help]"
+    aliases: [att, attach]
+    permission: enchantcore.attachments.use
+
 permissions:
   enchantcore.admin:
     description: Allows usage of all admin commands for EnchantCore (/ec ...).
@@ -161,4 +167,9 @@ permissions:
   enchantcore.mortar.admin:
     description: Allows admin access to mortar system.
     default: op
-
+  enchantcore.attachments.use:
+    description: Allows usage of the attachments system.
+    default: true
+  enchantcore.attachments.admin:
+    description: Allows admin access to attachment commands (give, givebox).
+    default: op

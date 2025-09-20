@@ -50,6 +50,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import com.strikesenchantcore.managers.MortarManager;
+import com.strikesenchantcore.managers.AttachmentManager;
 
 
 public class BlockBreakListener implements Listener {
@@ -835,6 +836,22 @@ public class BlockBreakListener implements Listener {
         return ProcessResult.IGNORED;
     }
 
+
+
+    private void showProcBonusEffect(Player player) {
+        AttachmentManager attachmentManager = plugin.getAttachmentManager();
+        if (attachmentManager == null) return;
+        double bonus = attachmentManager.getTotalProcBonus(player.getUniqueId());
+
+        if (bonus > 0 && ThreadLocalRandom.current().nextDouble() < 0.1) { // 10% chance to show message
+            String bonusPercent = String.format("%.1f", bonus * 100);
+            ChatUtil.sendMessage(player, "&6⚡ &eAttachment Boost: &6+" + bonusPercent + "%");
+        }
+    }
+
+
+
+
     private Collection<ItemStack> getDropsForBlock(Block block, Material originalMaterial, ItemStack tool, Player player, @Nullable BlockBreakEvent event) {
         try {
             if (event != null && event.isDropItems()) {
@@ -1176,12 +1193,22 @@ public class BlockBreakListener implements Listener {
             double chance = 1.0;
             if (settings != null && settings.contains("ChanceBase")) {
                 chance = settings.getDouble("ChanceBase", 0.0) + (settings.getDouble("ChanceIncreasePerLevel", 0.0) * Math.max(0, level - 1));
-                chance = Math.max(0.0, Math.min(1.0, chance));
             }
 
-            if (random.nextDouble() >= chance) {
-                continue;
+            // --- ATTACHMENT BONUS INTEGRATION ---
+            AttachmentManager attachmentManager = plugin.getAttachmentManager();
+            if (attachmentManager != null) {
+                chance += attachmentManager.getTotalProcBonus(player.getUniqueId());
             }
+            // --- END INTEGRATION ---
+
+            // Ensure final chance is within bounds and check if it triggers
+            if (random.nextDouble() >= Math.min(chance, 1.0)) {
+                continue; // The enchant did not trigger
+            }
+
+            // At this point, the enchant has successfully triggered.
+            showProcBonusEffect(player); // Call the visual feedback method
 
             try {
                 switch (enchantKey) {
