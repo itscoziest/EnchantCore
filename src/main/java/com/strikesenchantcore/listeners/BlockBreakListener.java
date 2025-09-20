@@ -511,13 +511,13 @@ public class BlockBreakListener implements Listener {
         // Calculate final health based on level
         int finalHealth = baseHealth + (Math.max(0, level - 1) * healthPerLevel);
 
-        // Calculate spawn location (slightly above the broken block)
-        Location spawnLocation = impactLocation.clone().add(0.5, spawnHeight, 0.5);
+        // Calculate spawn location (at the exact block that was broken)
+        Location spawnLocation = impactLocation.clone().add(0.5, 0.5, 0.5);
 
         // Get the rewards section
         ConfigurationSection rewardsSection = settings.getConfigurationSection("Rewards");
         if (rewardsSection == null) {
-            logger.warning("[Lootbox] No 'Rewards' section found in lootbox configuration!");
+            logger.warning("[Lootpinata] No 'Rewards' section found in lootpinata configuration!");
             return;
         }
 
@@ -529,7 +529,7 @@ public class BlockBreakListener implements Listener {
             return;
         }
 
-        // Spawn the MythicMobs piñata
+        // Spawn the ModelEngine piñata (this will handle block clearing and sounds)
         boolean spawned = pinataListener.spawnModelEnginePinata(
                 spawnLocation,
                 player.getUniqueId(),
@@ -547,13 +547,6 @@ public class BlockBreakListener implements Listener {
                         .replace("%timeout%", String.valueOf(timeoutSeconds));
                 ChatUtil.sendMessage(player, spawnMessage);
             }
-
-            if (playerData.isShowEnchantSounds()) {
-                playSoundAt(player, spawnLocation, Sound.ENTITY_DONKEY_HURT, 1.0f, 1.2f);
-            }
-
-            // Spawn some particles at the spawn location
-            spawnLocation.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, spawnLocation, 20, 1.0, 1.0, 1.0);
 
             if (debug) {
                 logger.info("[Lootpinata] Successfully spawned " + mobType + " for " + player.getName() +
@@ -575,7 +568,53 @@ public class BlockBreakListener implements Listener {
 
 
 
+    /**
+     * Clears blocks in a rectangular area around the piñata spawn location
+     */
+    private void clearBlocksAroundPinata(Location center, int radiusX, int radiusY, int radiusZ, Player player) {
+        final boolean debug = isDebugMode();
+        World world = center.getWorld();
+        if (world == null) return;
 
+        int centerX = center.getBlockX();
+        int centerY = center.getBlockY();
+        int centerZ = center.getBlockZ();
+
+        List<Block> blocksToBreak = new ArrayList<>();
+
+        // Find blocks in 4x6x4 area
+        for (int x = centerX - radiusX; x <= centerX + radiusX; x++) {
+            for (int y = centerY - radiusY; y <= centerY + radiusY; y++) {
+                // World height boundary check
+                if (y < world.getMinHeight() || y >= world.getMaxHeight()) continue;
+
+                for (int z = centerZ - radiusZ; z <= centerZ + radiusZ; z++) {
+                    Location checkLoc = new Location(world, x, y, z);
+
+                    // Check WorldGuard permission
+                    if (worldGuardHook.isEnchantAllowed(checkLoc)) {
+                        Block block = world.getBlockAt(checkLoc);
+                        if (isBreakable(block, false)) { // Don't break bedrock
+                            blocksToBreak.add(block);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!blocksToBreak.isEmpty()) {
+            if (debug) {
+                logger.info("[Lootpinata] Clearing " + blocksToBreak.size() + " blocks around piñata for " + player.getName());
+            }
+
+            // Use the existing AreaBlockBreakTask to break blocks efficiently
+            ItemStack pickaxe = player.getInventory().getItemInMainHand();
+            PlayerData playerData = dataManager.getPlayerData(player.getUniqueId());
+
+            new AreaBlockBreakTask(player, pickaxe, blocksToBreak, false, center, "LootpinataClear", playerData, true)
+                    .runTaskTimer(plugin, 1L, 1L);
+        }
+    }
 
 
 

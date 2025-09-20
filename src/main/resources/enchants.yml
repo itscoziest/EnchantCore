@@ -533,6 +533,9 @@ enchants:
       AlreadyActiveMessage: "&cYou already have an active loot piñata!"
       TimeoutMessage: "&eThe loot piñata got away..."
       FailMessage: "&cFailed to spawn loot piñata! Try again later."
+      SpawnSound: "ENTITY_DRAGON_GROWL"
+      SpawnSoundVolume: 1.0
+      SpawnSoundPitch: 0.8
 
       # Rewards Configuration
       Rewards:

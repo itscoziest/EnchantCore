@@ -41,6 +41,11 @@ repositories {
         name = 'lumine-releases'
         url = 'https://mvn.lumine.io/repository/maven-public/'
     }
+    // ModelEngine API repository
+    maven {
+        name = 'ticxo'
+        url = 'https://repo.ticxo.org/repository/maven-public/'
+    }
 }
 
 dependencies {
@@ -62,6 +67,9 @@ dependencies {
 
     // MythicMobs API - Latest version 5.6.1
     compileOnly 'io.lumine:Mythic-Dist:5.6.1'
+
+    // ModelEngine API - Add this dependency
+    compileOnly 'com.ticxo.modelengine:ModelEngine:R4.0.0'
 
     // bStats - this will be shaded into your plugin
     implementation 'org.bstats:bstats-bukkit:3.0.2'

@@ -18,6 +18,14 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.block.Block;
+import org.bukkit.Material;
+import org.bukkit.World;
+
+// ModelEngine imports
+import com.ticxo.modelengine.api.ModelEngineAPI;
+import com.ticxo.modelengine.api.model.ActiveModel;
+import com.ticxo.modelengine.api.model.ModeledEntity;
 
 import java.util.Map;
 import java.util.Random;
@@ -42,82 +50,112 @@ public class PinataListener implements Listener {
     }
 
     /**
-     * Spawns a MythicMobs piñata that automatically applies the ModelEngine model.
+     * Spawns a ModelEngine piñata at the specified location.
+     * Uses a pig entity with ModelEngine model applied.
      */
     public boolean spawnModelEnginePinata(Location location, UUID owner, ConfigurationSection rewardsSection,
                                           int health, int timeoutSeconds, String modelName) {
 
+        // Check if player already has an active piñata
         if (hasActivePinata(owner)) {
             return false;
         }
 
         try {
-            // Clear space
-            clearSphereAroundLocation(location, 2);
+            // Spawn a pig entity
+            Pig pinataEntity = (Pig) location.getWorld().spawnEntity(location, EntityType.PIG);
 
-            // Use ModelEngine's summon command to spawn the piñata
-            String summonCommand = "meg summon " + modelName + " " +
-                    location.getWorld().getName() + " " +
-                    location.getX() + " " +
-                    location.getY() + " " +
-                    location.getZ();
+            // Configure the pig
+            pinataEntity.setPersistent(false);
+            pinataEntity.setAI(false); // Disable AI so it doesn't move
+            pinataEntity.setInvulnerable(false); // Allow damage
+            pinataEntity.setSilent(true); // No pig sounds
+            pinataEntity.setCustomName("§6§lLoot Piñata");
+            pinataEntity.setCustomNameVisible(true);
 
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), summonCommand);
+            // Make the pig invisible so only the ModelEngine model shows
+            pinataEntity.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                    org.bukkit.potion.PotionEffectType.INVISIBILITY,
+                    Integer.MAX_VALUE,
+                    0,
+                    false,
+                    false
+            ));
 
-            // Wait a few ticks for the entity to spawn, then find it and mark it
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                // Find the newly spawned entity near the location
-                Entity pinataEntity = null;
-                for (Entity entity : location.getWorld().getNearbyEntities(location, 3, 3, 3)) {
-                    // Look for the entity that was just spawned (should be the closest one)
-                    if (entity.getLocation().distance(location) < 2.0) {
-                        pinataEntity = entity;
-                        break;
-                    }
-                }
+            // Mark it as our piñata using PDC
+            pinataEntity.getPersistentDataContainer().set(PINATA_KEY, PersistentDataType.BYTE, (byte) 1);
 
-                if (pinataEntity != null) {
-                    // Configure the entity
-                    pinataEntity.setPersistent(false);
-                    pinataEntity.setCustomName("§6§lLoot Piñata");
-                    pinataEntity.setCustomNameVisible(true);
+            // Apply ModelEngine model using API instead of commands
+            boolean modelApplied = applyModelEngineModel(pinataEntity, modelName);
 
-                    // Mark it as our piñata
-                    pinataEntity.getPersistentDataContainer().set(PINATA_KEY, PersistentDataType.BYTE, (byte) 1);
+            if (!modelApplied) {
+                plugin.getLogger().warning("Failed to apply ModelEngine model '" + modelName + "' to piñata entity");
+                pinataEntity.remove(); // Clean up the entity
+                return false;
+            }
 
-                    // Store data
-                    PinataData pinataData = new PinataData(owner, health, rewardsSection, timeoutSeconds);
-                    activePinatas.put(pinataEntity.getUniqueId(), pinataData);
+            // Create piñata data and store it
+            PinataData pinataData = new PinataData(owner, health, rewardsSection, timeoutSeconds);
+            activePinatas.put(pinataEntity.getUniqueId(), pinataData);
 
-                    plugin.getLogger().info("Successfully spawned and tracked ModelEngine piñata for " + Bukkit.getPlayer(owner));
-                } else {
-                    plugin.getLogger().warning("Failed to find spawned ModelEngine piñata entity for tracking");
-                }
-            }, 10L); // Wait 10 ticks (0.5 seconds) for entity to fully spawn
+            // Clear blocks immediately in 4x6x4 area
+            World world = location.getWorld();
+            int x = location.getBlockX();
+            int y = location.getBlockY();
+            int z = location.getBlockZ();
 
-            // Play sounds and particles
-            Player ownerPlayer = Bukkit.getPlayer(owner);
-            if (ownerPlayer != null) {
-                ownerPlayer.playSound(location, Sound.BLOCK_NOTE_BLOCK_PLING, 2.0f, 2.0f);
-                ownerPlayer.playSound(location, Sound.BLOCK_NOTE_BLOCK_PLING, 2.0f, 1.5f);
-                ownerPlayer.playSound(location, Sound.BLOCK_NOTE_BLOCK_CHIME, 1.5f, 1.2f);
-
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    ownerPlayer.playSound(location, Sound.BLOCK_NOTE_BLOCK_BELL, 1.0f, 1.8f);
-                }, 5L);
-
-                for (Player nearbyPlayer : location.getWorld().getPlayers()) {
-                    if (nearbyPlayer.getLocation().distance(location) <= 50 && !nearbyPlayer.equals(ownerPlayer)) {
-                        nearbyPlayer.playSound(location, Sound.BLOCK_NOTE_BLOCK_PLING, 0.8f, 1.5f);
-                        nearbyPlayer.playSound(location, Sound.BLOCK_NOTE_BLOCK_CHIME, 0.6f, 1.2f);
+            // Clear 4x6x4 area immediately
+            for (int dx = -3; dx <= 3; dx++) {
+                for (int dy = -2; dy <= 6; dy++) {
+                    for (int dz = -3; dz <= 3; dz++) {
+                        Block block = world.getBlockAt(x + dx, y + dy, z + dz);
+                        if (block.getType() != Material.AIR && block.getType() != Material.BEDROCK) {
+                            block.setType(Material.AIR);
+                        }
                     }
                 }
             }
 
-            // Spawn particles
-            location.getWorld().spawnParticle(Particle.EXPLOSION_HUGE, location.clone().add(0, 1, 0), 3);
-            location.getWorld().spawnParticle(Particle.FIREWORKS_SPARK, location.clone().add(0, 2, 0), 50, 2.0, 2.0, 2.0, 0.1);
-            location.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, location.clone().add(0, 1, 0), 30, 1.5, 1.5, 1.5);
+            // Play configurable sound
+            Player ownerPlayer = Bukkit.getPlayer(owner);
+            if (ownerPlayer != null) {
+                PlayerData playerData = dataManager.getPlayerData(owner);
+                if (playerData != null && playerData.isShowEnchantSounds()) {
+                    // Get sound settings from lootpinata config
+                    ConfigurationSection lootpinataConfig = plugin.getEnchantRegistry().getEnchant("lootpinata").getCustomSettings();
+
+                    if (lootpinataConfig != null) {
+                        // Read sound configuration
+                        String soundName = lootpinataConfig.getString("SpawnSound", "ENTITY_GENERIC_EXPLODE");
+                        float volume = (float) lootpinataConfig.getDouble("SpawnSoundVolume", 1.0);
+                        float pitch = (float) lootpinataConfig.getDouble("SpawnSoundPitch", 0.8);
+
+                        plugin.getLogger().info("[DEBUG] Reading sound config: " + soundName + " vol:" + volume + " pitch:" + pitch);
+
+                        // Play the sound
+                        try {
+                            Sound sound = Sound.valueOf(soundName);
+                            ownerPlayer.playSound(location, sound, volume, pitch);
+                            plugin.getLogger().info("[DEBUG] Successfully played sound: " + soundName);
+                        } catch (IllegalArgumentException e) {
+                            plugin.getLogger().warning("Invalid sound name in lootpinata configuration: " + soundName);
+                            // Fallback to default sound
+                            ownerPlayer.playSound(location, Sound.BLOCK_NETHER_SPROUTS_BREAK, 1.0f, 0.8f);
+                        }
+                    } else {
+                        plugin.getLogger().warning("[DEBUG] lootpinataConfig is null!");
+                        // Fallback to default sound if config is missing
+                        ownerPlayer.playSound(location, Sound.BLOCK_NETHER_SPROUTS_BREAK, 1.0f, 0.8f);
+                    }
+                }
+
+                // Particles
+                world.spawnParticle(Particle.EXPLOSION_LARGE, location.clone().add(0, 1, 0), 3);
+                world.spawnParticle(Particle.FIREWORKS_SPARK, location.clone().add(0, 1, 0), 20, 2.0, 2.0, 2.0);
+            }
+
+            plugin.getLogger().info("Spawned ModelEngine piñata for player " + Bukkit.getPlayer(owner) +
+                    " at " + location + " with " + health + " health");
 
             return true;
         } catch (Exception e) {
@@ -127,33 +165,40 @@ public class PinataListener implements Listener {
     }
 
     /**
-     * Clears blocks in a sphere around the given location to make space for the piñata
+     * Applies a ModelEngine model to an entity using the proper API
      */
-    private void clearSphereAroundLocation(Location center, int radius) {
-        World world = center.getWorld();
-        if (world == null) return;
-
-        int centerX = center.getBlockX();
-        int centerY = center.getBlockY();
-        int centerZ = center.getBlockZ();
-
-        for (int x = centerX - radius; x <= centerX + radius; x++) {
-            for (int y = centerY - radius; y <= centerY + radius; y++) {
-                for (int z = centerZ - radius; z <= centerZ + radius; z++) {
-                    // Check if point is within sphere
-                    double distance = Math.sqrt(Math.pow(x - centerX, 4) + Math.pow(y - centerY, 6) + Math.pow(z - centerZ, 4));
-                    if (distance <= radius) {
-                        Location blockLoc = new Location(world, x, y, z);
-                        Material blockType = blockLoc.getBlock().getType();
-
-                        // Only clear breakable blocks, don't touch bedrock, air, etc.
-                        if (blockType != Material.AIR && blockType != Material.BEDROCK &&
-                                blockType != Material.BARRIER && !blockType.name().contains("COMMAND_BLOCK")) {
-                            blockLoc.getBlock().setType(Material.AIR);
-                        }
-                    }
-                }
+    private boolean applyModelEngineModel(Entity entity, String modelName) {
+        try {
+            // Check if the model exists
+            if (ModelEngineAPI.getBlueprint(modelName) == null) {
+                plugin.getLogger().warning("ModelEngine model '" + modelName + "' does not exist!");
+                return false;
             }
+
+            // Create a modeled entity
+            ModeledEntity modeledEntity = ModelEngineAPI.createModeledEntity(entity);
+            if (modeledEntity == null) {
+                plugin.getLogger().warning("Failed to create ModeledEntity for piñata");
+                return false;
+            }
+
+            // Create and add the active model
+            ActiveModel activeModel = ModelEngineAPI.createActiveModel(modelName);
+            if (activeModel == null) {
+                plugin.getLogger().warning("Failed to create ActiveModel for model '" + modelName + "'");
+                return false;
+            }
+
+            // Add the model to the entity
+            modeledEntity.addModel(activeModel, true);
+
+            plugin.getLogger().info("Successfully applied ModelEngine model '" + modelName + "' to piñata entity");
+            return true;
+
+        } catch (Exception e) {
+            plugin.getLogger().severe("Error applying ModelEngine model '" + modelName + "': " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
     }
 
@@ -286,9 +331,8 @@ public class PinataListener implements Listener {
 
         Location location = pinataEntity.getLocation();
 
-        // Remove the ModelEngine model first
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                "meg remove " + pinataEntity.getUniqueId());
+        // Remove the ModelEngine model using proper API
+        removeModelEngineModel(pinataEntity);
 
         // Then remove the entity
         pinataEntity.remove();
@@ -305,6 +349,18 @@ public class PinataListener implements Listener {
             String breakMessage = plugin.getEnchantRegistry().getEnchant("lootpinata")
                     .getCustomSettings().getString("BreakMessage", "&a&lPiñata Broken! &eAll rewards collected!");
             ChatUtil.sendMessage(player, breakMessage);
+        }
+    }
+
+    private void removeModelEngineModel(Entity entity) {
+        try {
+            ModeledEntity modeledEntity = ModelEngineAPI.getModeledEntity(entity);
+            if (modeledEntity != null) {
+                modeledEntity.destroy();
+                plugin.getLogger().info("Successfully removed ModelEngine model from piñata entity");
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Error removing ModelEngine model: " + e.getMessage());
         }
     }
 
@@ -333,9 +389,8 @@ public class PinataListener implements Listener {
             for (Entity entity : world.getEntities()) {
                 if (entity.getUniqueId().equals(entityUUID)) {
 
-                    // Remove ModelEngine model
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                            "meg remove " + entity.getUniqueId());
+                    // Remove ModelEngine model using proper API
+                    removeModelEngineModel(entity);
 
                     // Remove entity
                     entity.remove();
