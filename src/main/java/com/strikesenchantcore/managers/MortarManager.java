@@ -3,7 +3,6 @@ package com.strikesenchantcore.managers;
 import com.strikesenchantcore.EnchantCore;
 import com.strikesenchantcore.data.PlayerData;
 import com.strikesenchantcore.data.PlayerDataManager;
-import com.strikesenchantcore.enchants.EnchantRegistry;
 import com.strikesenchantcore.enchants.EnchantmentWrapper;
 import com.strikesenchantcore.util.ChatUtil;
 import com.strikesenchantcore.util.PDCUtil;
@@ -20,13 +19,11 @@ public class MortarManager {
     private final EnchantCore plugin;
     private final PlayerDataManager playerDataManager;
     private final Map<UUID, Long> mortarCooldowns;
-    private final Map<UUID, MortarData> mortarPlayerData;
 
     public MortarManager(EnchantCore plugin) {
         this.plugin = plugin;
         this.playerDataManager = plugin.getPlayerDataManager();
         this.mortarCooldowns = new HashMap<>();
-        this.mortarPlayerData = new HashMap<>();
 
         // Start the mortar activation task
         startMortarTask();
@@ -247,7 +244,13 @@ public class MortarManager {
     }
 
     public MortarData getMortarData(UUID playerId) {
-        return mortarPlayerData.computeIfAbsent(playerId, k -> new MortarData());
+        PlayerData playerData = playerDataManager.getPlayerData(playerId);
+        if (playerData != null) {
+            return playerData.getMortarData();
+        }
+        // Fallback to prevent NullPointerException. This should ideally never be reached
+        // if PlayerData is loaded correctly for every online player.
+        return new MortarData();
     }
 
     public boolean isOnCooldown(UUID playerId) {
@@ -303,6 +306,10 @@ public class MortarManager {
         private long boostEndTime = 0;
         private double boostMultiplier = 1.0;
         private final Map<MortarUpgrade, Integer> upgradeLevels = new HashMap<>();
+
+        public boolean hasMortarBoost() {
+            return boostEndTime > System.currentTimeMillis();
+        }
 
         public int getLevel() { return level; }
         public void setLevel(int level) { this.level = level; }

@@ -74,7 +74,9 @@ public class AttachmentsCommand implements CommandExecutor, TabCompleter {
                 com.strikesenchantcore.data.PlayerData pd = plugin.getPlayerDataManager().getPlayerData(p.getUniqueId());
                 if (pd != null) {
                     // Test mortar save
-                    pd.setMortarLevel(5);
+                    // --- THIS IS THE FIX ---
+                    pd.getMortarData().setLevel(5);
+                    // --- END FIX ---
                     plugin.getPlayerDataManager().savePlayerData(pd, false); // Force sync save
                     ChatUtil.sendMessage(p, "&aMortar level set to 5 and saved!");
                 }

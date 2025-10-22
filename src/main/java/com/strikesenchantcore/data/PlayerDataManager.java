@@ -3,7 +3,9 @@ package com.strikesenchantcore.data;
 import com.strikesenchantcore.EnchantCore;
 import com.strikesenchantcore.config.PickaxeConfig;
 import com.strikesenchantcore.managers.AttachmentManager;
+import com.strikesenchantcore.managers.MortarDataManager;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -14,22 +16,17 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import org.bukkit.OfflinePlayer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.HashMap;
-import java.util.Map;
 
-/**
- * Manages loading/saving PlayerData from individual YAML files.
- * Includes caching, asynchronous saving, and auto-saving.
- */
 public class PlayerDataManager {
 
     private final EnchantCore plugin;
@@ -120,30 +117,18 @@ public class PlayerDataManager {
                     }
                 }
 
-                // Load mortar data - ADD THIS SECTION
-                data.setMortarLevel(playerConfig.getInt("mortar.level", 0));
-                data.setMortarLastActivation(playerConfig.getLong("mortar.lastActivation", 0L));
-                data.setMortarBoostEndTime(playerConfig.getLong("mortar.boostEndTime", 0L));
-                data.setMortarBoostMultiplier(playerConfig.getDouble("mortar.boostMultiplier", 1.0));
-
-                // Load mortar upgrades
-                ConfigurationSection mortarUpgradesSection = playerConfig.getConfigurationSection("mortar.upgrades");
-                if (mortarUpgradesSection != null) {
-                    for (String key : mortarUpgradesSection.getKeys(false)) {
-                        int mortarLevel = mortarUpgradesSection.getInt(key, 0);
-                        if (mortarLevel > 0) {
-                            data.setMortarUpgradeLevel(key, mortarLevel);
-                        }
-                    }
+                // --- MODIFIED: Load Mortar Data using the helper ---
+                if (playerConfig.isConfigurationSection("mortar")) {
+                    data.setMortarData(MortarDataManager.loadFromPlayerData(playerConfig));
                 }
 
-                loadAttachmentData(playerConfig, playerUUID); // ADDED THIS LINE
+                loadAttachmentData(playerConfig, playerUUID);
 
                 if (debug) logger.fine("[PlayerData] Loaded data for " + playerUUID + " from file.");
 
             } catch (IOException | InvalidConfigurationException e) {
                 logger.log(Level.SEVERE, "Could not load player data file: " + playerFile.getName() + ". File might be corrupted.", e);
-                File corruptFile = new File(dataFolder, playerUUID.toString() + ".yml.corrupt");
+                File corruptFile = new File(dataFolder, playerUUID + ".yml.corrupt");
                 try {
                     Files.createDirectories(corruptFile.getParentFile().toPath());
                     Files.move(playerFile.toPath(), corruptFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -201,27 +186,12 @@ public class PlayerDataManager {
             playerConfig.set("boosters.block.endTime", data.getBlockBoosterEndTime());
             playerConfig.set("boosters.block.multiplier", data.getRawBlockBoosterMultiplier());
 
-            // --- FIXED: Call the dedicated method to save crystal data ---
             saveCrystalData(playerConfig, data);
-            // --- END FIXED ---
 
-            // Save mortar data - ADD THIS SECTION
-            playerConfig.set("mortar.level", data.getMortarLevel());
-            playerConfig.set("mortar.lastActivation", data.getMortarLastActivation());
-            playerConfig.set("mortar.boostEndTime", data.getMortarBoostEndTime());
-            playerConfig.set("mortar.boostMultiplier", data.getMortarBoostMultiplier());
+            // --- MODIFIED: Save Mortar Data using the helper ---
+            MortarDataManager.saveToPlayerData(playerConfig, data.getMortarData());
 
-            // Save mortar upgrades
-            Map<String, Integer> mortarUpgrades = data.getMortarUpgrades();
-            if (!mortarUpgrades.isEmpty()) {
-                for (Map.Entry<String, Integer> entry : mortarUpgrades.entrySet()) {
-                    playerConfig.set("mortar.upgrades." + entry.getKey(), entry.getValue());
-                }
-            } else {
-                playerConfig.set("mortar.upgrades", null);
-            }
-
-            saveAttachmentData(playerConfig, data.getPlayerUUID()); // ADDED THIS LINE
+            saveAttachmentData(playerConfig, data.getPlayerUUID());
 
             try {
                 if (!dataFolder.exists()) {
@@ -299,7 +269,7 @@ public class PlayerDataManager {
         }
 
         logger.info("DEBUG: Saving player data for " + playerId);
-        logger.info("DEBUG: Mortar level: " + data.getMortarLevel());
+        logger.info("DEBUG: Mortar level: " + data.getMortarData().getLevel());
         logger.info("DEBUG: Tokens: " + data.getTokens());
 
         savePlayerData(data, false); // Force sync save
@@ -443,4 +413,3 @@ public class PlayerDataManager {
         }
     }
 }
-

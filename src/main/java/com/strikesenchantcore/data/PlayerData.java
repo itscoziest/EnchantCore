@@ -1,7 +1,7 @@
 package com.strikesenchantcore.data;
 
+import com.strikesenchantcore.managers.MortarManager; // Import MortarManager
 import org.jetbrains.annotations.NotNull;
-
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Locale;
@@ -17,19 +17,16 @@ public class PlayerData {
     private long gems;
     private long points; // ADDED: For Rebirth Points
 
+    // --- NEW: MortarData Object ---
+    // This will now hold all mortar-related information for the player.
+    private MortarManager.MortarData mortarData;
+
     private Map<String, Integer> crystalStorage = new HashMap<>(); // "TYPE_TIER" -> amount
     private Map<Integer, String> equippedCrystals = new HashMap<>(); // slot -> "TYPE_TIER"
 
     // Booster fields
     private long blockBoosterEndTime = 0L;
     private double blockBoosterMultiplier = 1.0;
-
-    // Mortar data fields
-    private int mortarLevel = 0;
-    private long mortarLastActivation = 0L;
-    private long mortarBoostEndTime = 0L;
-    private double mortarBoostMultiplier = 1.0;
-    private final Map<String, Integer> mortarUpgrades = new HashMap<>();
 
     // Attachment storage fields
     private final Map<Integer, Integer> attachmentStorage = new HashMap<>(); // tier -> count
@@ -48,6 +45,7 @@ public class PlayerData {
 
     public PlayerData() {
         this.playerUUID = UUID.randomUUID();
+        this.mortarData = new MortarManager.MortarData(); // Initialize with default data
     }
 
     public PlayerData(@NotNull UUID playerUUID, int initialLevel, long initialBlocksMined) {
@@ -62,6 +60,20 @@ public class PlayerData {
         this.showEnchantAnimations = true;
         this.blockBoosterEndTime = 0L;
         this.blockBoosterMultiplier = 1.0;
+        this.mortarData = new MortarManager.MortarData(); // Initialize with default data
+    }
+
+    // --- NEW: MortarData Getter/Setter ---
+    @NotNull
+    public MortarManager.MortarData getMortarData() {
+        if (this.mortarData == null) {
+            this.mortarData = new MortarManager.MortarData(); // Safety check
+        }
+        return this.mortarData;
+    }
+
+    public void setMortarData(MortarManager.MortarData mortarData) {
+        this.mortarData = mortarData;
     }
 
     // --- Core Getters ---
@@ -177,41 +189,6 @@ public class PlayerData {
     public double getRawBlockBoosterMultiplier() { return this.blockBoosterMultiplier; }
     public void setBlockBoosterMultiplier(double multiplier) { this.blockBoosterMultiplier = multiplier; }
 
-    // --- Mortar Methods ---
-    public int getMortarLevel() { return mortarLevel; }
-    public void setMortarLevel(int level) { this.mortarLevel = Math.max(0, level); }
-
-    public long getMortarLastActivation() { return mortarLastActivation; }
-    public void setMortarLastActivation(long timestamp) { this.mortarLastActivation = timestamp; }
-
-    public long getMortarBoostEndTime() { return mortarBoostEndTime; }
-    public void setMortarBoostEndTime(long endTime) { this.mortarBoostEndTime = endTime; }
-
-    public double getMortarBoostMultiplier() { return mortarBoostMultiplier; }
-    public void setMortarBoostMultiplier(double multiplier) { this.mortarBoostMultiplier = multiplier; }
-
-    public boolean hasMortarBoost() {
-        return mortarBoostEndTime > System.currentTimeMillis();
-    }
-
-    public double getActiveMortarBoost() {
-        return hasMortarBoost() ? mortarBoostMultiplier : 1.0;
-    }
-
-    public Map<String, Integer> getMortarUpgrades() { return new HashMap<>(mortarUpgrades); }
-
-    public int getMortarUpgradeLevel(String upgrade) {
-        return mortarUpgrades.getOrDefault(upgrade.toLowerCase(), 0);
-    }
-
-    public void setMortarUpgradeLevel(String upgrade, int level) {
-        if (level <= 0) {
-            mortarUpgrades.remove(upgrade.toLowerCase());
-        } else {
-            mortarUpgrades.put(upgrade.toLowerCase(), level);
-        }
-    }
-
     // --- Overcharge Methods ---
     public int getOverchargeCharge() { return this.overchargeCharge; }
     public void setOverchargeCharge(int charge) { this.overchargeCharge = charge; }
@@ -228,12 +205,12 @@ public class PlayerData {
                 ", tokens=" + tokens +
                 ", gems=" + gems +
                 ", points=" + points +
-                ", mortarLvl=" + mortarLevel + // ADDED
+                ", mortarLvl=" + getMortarData().getLevel() +
                 ", showMsg=" + showEnchantMessages +
                 ", showSnd=" + showEnchantSounds +
                 ", showAnim=" + showEnchantAnimations +
                 ", boosterActive=" + isBlockBoosterActive() +
-                ", mortarBoostActive=" + hasMortarBoost() + // ADDED
+                ", mortarBoostActive=" + getMortarData().hasMortarBoost() +
                 '}';
     }
 
