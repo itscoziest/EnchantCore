@@ -79,6 +79,7 @@ public class BlockBreakListener implements Listener {
     private final Map<UUID, AutoSellSummary> playerSummaries = new ConcurrentHashMap<>();
     private final Map<UUID, BukkitTask> pendingSummaryTasks = new ConcurrentHashMap<>();
     public static final Set<UUID> nukeActivePlayers = ConcurrentHashMap.newKeySet();
+    private static final Map<UUID, Map<Block, BlockData>> activeVortexBlocks = new ConcurrentHashMap<>();
     public final Map<UUID, BossBar> activeNukeBossBars = new ConcurrentHashMap<>();
     private static final Set<UUID> activeBlackholePlayers = ConcurrentHashMap.newKeySet();
     private static final Set<Location> activeBlackholeSpheres = ConcurrentHashMap.newKeySet();
@@ -161,6 +162,12 @@ public class BlockBreakListener implements Listener {
             Collections.shuffle(allBlocks);
             allBlocks = allBlocks.subList(0, maxBlocks);
         }
+
+        Map<Block, BlockData> blocksToRestore = new HashMap<>();
+        for (Block b : allBlocks) {
+            blocksToRestore.put(b, b.getBlockData());
+        }
+        activeVortexBlocks.put(playerUUID, blocksToRestore);
 
         activeBlackholePlayers.add(playerUUID);
 
@@ -375,6 +382,7 @@ public class BlockBreakListener implements Listener {
 
         private void cleanup() {
             if (activeBlackholePlayers.remove(playerUUID)) {
+                activeVortexBlocks.remove(playerUUID);
                 BlackholeManager blackholeManager = plugin.getBlackholeManager();
                 if (blackholeManager != null) {
                     blackholeManager.removeBlackholeByLocation(vortexCenter);
@@ -1492,11 +1500,22 @@ public class BlockBreakListener implements Listener {
                     List<Block> blocksToBreak = findBlocksInRadius(explosionCenter, explosionRadius, breakBedrock, "NukeTNT");
 
                     if (!blocksToBreak.isEmpty()) {
-                        if (debug) logger.info("[Dbg][NukeTNT] Tasking " + blocksToBreak.size() + " blocks for Nuke for " + player.getName());
-                        new AreaBlockBreakTask(player, pickaxe, blocksToBreak, breakBedrock, explosionCenter, "NukeTNT", playerData, true).runTaskTimer(plugin, 1L, 1L);
+                        if (debug) logger.info("[Dbg][NukeTNT] Instantly breaking " + blocksToBreak.size() + " blocks for " + player.getName());
+
+                        // This loop breaks all blocks in the same tick
+                        for (Block block : blocksToBreak) {
+                            if (isBreakable(block, breakBedrock)) {
+                                processSingleBlockBreak(player, block, block.getType(), pickaxe, null, playerData);
+                                block.setType(Material.AIR, false);
+                            }
+                        }
+                        // Manually call the completion logic now that the task is gone
+                        notifyNukeComplete(player.getUniqueId(), false);
+
                     } else {
                         if (debug) logger.info("[Dbg][NukeTNT] 0 blocks found for Nuke for " + player.getName());
-                        notifyNukeComplete(taskPlayerUUID, true);
+                        // Still need to notify completion to clean up the player's nuke status
+                        notifyNukeComplete(player.getUniqueId(), true);
                     }
                 }
             }
@@ -1581,8 +1600,14 @@ public class BlockBreakListener implements Listener {
         }
 
         if (!blocksToBreak.isEmpty()) {
-            if(debug) logger.info("[Dbg][Disc] Found "+blocksToBreak.size()+" blocks within allowed region(s) for "+player.getName()+". Tasking...");
-            new AreaBlockBreakTask(player, pickaxe, new ArrayList<>(blocksToBreak), breakBedrock, brokenBlock.getLocation(), "Disc", playerData, true).runTaskTimer(plugin, 1L, 1L);
+            if(debug) logger.info("[Dbg][Disc] Instantly breaking "+blocksToBreak.size()+" blocks for "+player.getName()+".");
+
+            // This loop breaks all blocks in the same tick
+            for (Block block : blocksToBreak) {
+                processSingleBlockBreak(player, block, block.getType(), pickaxe, null, playerData);
+                block.setType(Material.AIR, false);
+            }
+
         } else if(debug) {
             logger.info("[Dbg][Disc] 0 valid blocks found for "+player.getName()+" after region checks.");
         }
@@ -2296,4 +2321,29 @@ public class BlockBreakListener implements Listener {
             }
         }
     }
+
+    /**
+     * NEW METHOD: This is the failsafe to restore all blocks from any unfinished Blackhole animations.
+     * This will be called from EnchantCore's onDisable() method.
+     */
+    public void restoreAllVortexes() {
+        if (activeVortexBlocks.isEmpty()) {
+            return;
+        }
+
+        logger.info("Restoring blocks from " + activeVortexBlocks.size() + " unfinished vortex animations...");
+        int restoredCount = 0;
+
+        for (Map<Block, BlockData> blocksToRestore : activeVortexBlocks.values()) {
+            for (Map.Entry<Block, BlockData> entry : blocksToRestore.entrySet()) {
+                // Set the block back to its original state (e.g., STONE, DIAMOND_ORE, etc.)
+                entry.getKey().setBlockData(entry.getValue(), false);
+                restoredCount++;
+            }
+        }
+
+        logger.info("Successfully restored " + restoredCount + " blocks.");
+        activeVortexBlocks.clear();
+    }
+
 }

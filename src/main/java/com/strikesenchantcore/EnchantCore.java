@@ -1,3 +1,4 @@
+// --- ENTIRE CLASS - COPY AND PASTE ---
 package com.strikesenchantcore;
 
 // --- Existing Imports ---
@@ -184,15 +185,35 @@ public final class EnchantCore extends JavaPlugin {
     public void onDisable() {
         getLogger().info("=== Disabling EnchantCore v" + getDescription().getVersion() + " ===");
 
-        // --- ADD THIS BLOCK FOR ARMOR STAND CLEANUP ---
-        getLogger().info("Cleaning up stray armor stands...");
+        // --- MODIFIED BLOCK FOR ARMOR STAND CLEANUP ---
+        getLogger().info("Cleaning up Blackhole effects...");
         if (blockBreakListener != null) {
             try {
+                // 1. Restore the original mine blocks from any unfinished animations
+                blockBreakListener.restoreAllVortexes();
+                // 2. Clean up the decorative coal spheres
                 blockBreakListener.cleanupBlackholeStands();
             } catch (Exception e) {
-                getLogger().log(Level.SEVERE, "Error during Blackhole armor stand cleanup", e);
+                getLogger().log(Level.SEVERE, "Error during Blackhole block/sphere cleanup", e);
             }
         }
+        if (blackholeManager != null) {
+            try {
+                // 3. Clean up the orphaned flying armor stand entities
+                blackholeManager.cleanupOrphanedArmorStands();
+            } catch (Exception e) {
+                getLogger().log(Level.SEVERE, "Error during Blackhole orphaned armor stand cleanup", e);
+            }
+        }
+        // ADDED THE NEW ARMOR STAND CLEANUP CALL
+        if (blackholeManager != null) {
+            try {
+                blackholeManager.cleanupOrphanedArmorStands(); // Cleans the flying block entities
+            } catch (Exception e) {
+                getLogger().log(Level.SEVERE, "Error during Blackhole orphaned armor stand cleanup", e);
+            }
+        }
+
         getLogger().info("Cancelling tasks...");
         if (passiveEffectTask != null && !passiveEffectTask.isCancelled()) {
             try { passiveEffectTask.cancel(); } catch (Exception e) { getLogger().warning("Error cancelling PassiveEffectTask: " + e.getMessage()); }

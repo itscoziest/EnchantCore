@@ -33,16 +33,15 @@ public class AttachmentsGUI implements InventoryHolder {
 
     // GUI Layout Constants
     private static final int GUI_SIZE = 54;
-    private static final int[] EQUIPPED_SLOTS = {28, 29, 30, 31, 32, 33, 34}; // Equipped slots moved to 28-34
+    private static final int[] EQUIPPED_SLOTS = {28, 29, 30, 31, 32, 33, 34};
 
 
     private static final int BACK_BUTTON_SLOT = 45;
-    private static final int MERGE_BUTTON_SLOT_1 = 24; // First merge button
-    private static final int MERGE_BUTTON_SLOT_2 = 25; // Second merge button (identical)
+    private static final int MERGE_BUTTON_SLOT_1 = 24;
+    private static final int MERGE_BUTTON_SLOT_2 = 25;
     private static final int PICKAXE_SHOWCASE_SLOT = 49;
     private static final int TOTAL_PROC_INFO_SLOT = 53;
 
-    // Storage area is now slots 10-16 (7 slots only)
     private static final int STORAGE_START = 10;
     private static final int STORAGE_END = 16;
 
@@ -50,12 +49,13 @@ public class AttachmentsGUI implements InventoryHolder {
         this.plugin = plugin;
         this.player = player;
         this.attachmentManager = plugin.getAttachmentManager();
-        this.inventory = Bukkit.createInventory(this, GUI_SIZE, ColorUtils.translateColors("&6&lAttachment Storage"));
+        this.inventory = Bukkit.createInventory(this, GUI_SIZE, ColorUtils.translateColors("&f\uE5A1\uE0AD"));
 
         populateGUI();
     }
 
     private void populateGUI() {
+        inventory.clear(); // Clear inventory to prevent item duplication on refresh
         populateEquippedSlots();
         populateStorageArea();
         addMergeAllButton();
@@ -78,7 +78,6 @@ public class AttachmentsGUI implements InventoryHolder {
                 ItemStack equipped = attachmentManager.createAttachmentItem(equippedTier, 1);
                 ItemMeta meta = equipped.getItemMeta();
                 if (meta != null) {
-                    // Replace the lore completely to avoid duplication
                     List<String> newLore = new ArrayList<>();
                     newLore.add(ColorUtils.translateColors("&7Proc Bonus: &e+" + String.format("%.1f", attachmentManager.getProcBonusForTier(equippedTier) * 100) + "%"));
                     newLore.add(ColorUtils.translateColors("&7Enhances enchant activation rates"));
@@ -105,21 +104,18 @@ public class AttachmentsGUI implements InventoryHolder {
 
         int currentSlot = STORAGE_START;
 
-        // Sort tiers in ascending order and display them (limited to 7 slots)
         for (int tier = 1; tier <= AttachmentManager.MAX_TIER && currentSlot <= STORAGE_END; tier++) {
             int count = attachments.getOrDefault(tier, 0);
             if (count > 0) {
                 ItemStack attachmentStack = attachmentManager.createAttachmentItem(tier, count);
                 ItemMeta meta = attachmentStack.getItemMeta();
                 if (meta != null) {
-                    // Replace the lore completely to avoid duplication
                     List<String> newLore = new ArrayList<>();
                     newLore.add(ColorUtils.translateColors("&7Proc Bonus: &e+" + String.format("%.1f", attachmentManager.getProcBonusForTier(tier) * 100) + "%"));
                     newLore.add(ColorUtils.translateColors("&7Enhances enchant activation rates"));
                     newLore.add("");
                     newLore.add(ColorUtils.translateColors("&7Amount: &e" + count));
 
-                    // Add merge info if applicable
                     if (count >= AttachmentManager.MERGE_COST && tier < AttachmentManager.MAX_TIER) {
                         int canMerge = count / AttachmentManager.MERGE_COST;
                         newLore.add(ColorUtils.translateColors("&aCan merge: &6" + canMerge + "x &7(3→1)"));
@@ -136,9 +132,8 @@ public class AttachmentsGUI implements InventoryHolder {
             }
         }
 
-        // Fill remaining storage slots with empty indicators
         while (currentSlot <= STORAGE_END) {
-            inventory.setItem(currentSlot, null); // Clear slot
+            inventory.setItem(currentSlot, null);
             currentSlot++;
         }
     }
@@ -151,7 +146,6 @@ public class AttachmentsGUI implements InventoryHolder {
                 ColorUtils.translateColors("&e&lClick to merge all!")
         );
 
-        // Create identical merge buttons for both slots
         ItemStack mergeButton = createItem(Material.BARRIER, "&6&lMerge All", lore, true);
         inventory.setItem(MERGE_BUTTON_SLOT_1, mergeButton.clone());
         inventory.setItem(MERGE_BUTTON_SLOT_2, mergeButton.clone());
@@ -170,19 +164,8 @@ public class AttachmentsGUI implements InventoryHolder {
     }
 
     private void addPickaxePreview() {
-        ItemStack pickaxe = null;
-        // This loop searches the player's inventory for the specific custom pickaxe
-        for (ItemStack item : player.getInventory().getContents()) {
-            if (item != null && item.hasItemMeta() &&
-                    item.getItemMeta().getPersistentDataContainer()
-                            .has(new NamespacedKey(plugin, "enchantcore_pickaxe"),
-                                    PersistentDataType.BYTE)) {
-                pickaxe = item;
-                break;
-            }
-        }
+        ItemStack pickaxe = plugin.getPickaxeManager().findPickaxe(player);
         if (pickaxe != null) {
-            // If the pickaxe is found, it's updated and a clone is made for the GUI
             plugin.getPickaxeManager().updatePickaxe(pickaxe, player);
             ItemStack pickaxeClone = pickaxe.clone();
             ItemMeta meta = pickaxeClone.getItemMeta();
@@ -193,10 +176,8 @@ public class AttachmentsGUI implements InventoryHolder {
                 meta.setLore(lore);
                 pickaxeClone.setItemMeta(meta);
             }
-            // This line places the pickaxe clone into slot 49
             inventory.setItem(PICKAXE_SHOWCASE_SLOT, pickaxeClone);
         } else {
-            // If no pickaxe is found, a placeholder is put in slot 49 instead
             ItemStack placeholder = new ItemStack(Material.DIAMOND_PICKAXE);
             ItemMeta meta = placeholder.getItemMeta();
             if (meta != null) {
@@ -244,25 +225,9 @@ public class AttachmentsGUI implements InventoryHolder {
     }
 
     public void handleClick(int slot, boolean isShiftClick, boolean isRightClick) {
-        AttachmentManager.AttachmentStorage storage = attachmentManager.getPlayerStorage(player.getUniqueId());
-
         // Handle back button
         if (slot == BACK_BUTTON_SLOT) {
-            player.closeInventory();
-            // Open the main enchant GUI
-            try {
-                // You'll need to get player data and pickaxe for the EnchantGUI
-                com.strikesenchantcore.data.PlayerData playerData = plugin.getPlayerDataManager().getPlayerData(player.getUniqueId());
-                org.bukkit.inventory.ItemStack pickaxe = plugin.getPickaxeManager().findPickaxe(player);
-                if (playerData != null && pickaxe != null) {
-                    new EnchantGUI(plugin, player, playerData, pickaxe).open();
-                } else {
-                    player.performCommand("enchantcore");
-                }
-            } catch (Exception e) {
-                plugin.getLogger().severe("Error opening EnchantGUI from AttachmentsGUI: " + e.getMessage());
-                player.performCommand("enchantcore");
-            }
+            handleBackButton(); // Use the new method for a smooth transition
             return;
         }
 
@@ -274,34 +239,59 @@ public class AttachmentsGUI implements InventoryHolder {
             }
         }
 
-        // Handle merge buttons (both slots 24 and 25)
+        // Handle merge buttons
         if (slot == MERGE_BUTTON_SLOT_1 || slot == MERGE_BUTTON_SLOT_2) {
             attachmentManager.mergeAllPossible(player);
-            populateGUI(); // Refresh GUI
+            populateGUI();
             return;
         }
 
-        // Handle pickaxe showcase (just informational, no action needed)
-        if (slot == PICKAXE_SHOWCASE_SLOT) {
-            return;
-        }
-
-        // Handle total proc info (just informational, no action needed)
-        if (slot == TOTAL_PROC_INFO_SLOT) {
+        // Handle informational slots
+        if (slot == PICKAXE_SHOWCASE_SLOT || slot == TOTAL_PROC_INFO_SLOT) {
             return;
         }
 
         // Handle storage area clicks
         if (slot >= STORAGE_START && slot <= STORAGE_END) {
             handleStorageClick(slot, isShiftClick, isRightClick);
-            return;
         }
     }
+
+    // New method to handle the back button logic smoothly
+    private void handleBackButton() {
+        try {
+            final com.strikesenchantcore.data.PlayerData playerData = plugin.getPlayerDataManager().getPlayerData(player.getUniqueId());
+            if (playerData != null) {
+                ItemStack pickaxe = plugin.getPickaxeManager().findPickaxe(player);
+
+                if (pickaxe != null) {
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+                    plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                        new EnchantGUI(plugin, player, playerData, pickaxe).open();
+                    }, 1L);
+                } else {
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                    ChatUtil.sendMessage(player, "&cCould not find your EnchantCore pickaxe!");
+                    player.closeInventory();
+                }
+            } else {
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                ChatUtil.sendMessage(player, "&cError loading player data!");
+                player.closeInventory();
+            }
+        } catch (Exception e) {
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            ChatUtil.sendMessage(player, "&cError opening main menu!");
+            e.printStackTrace();
+            player.closeInventory();
+        }
+    }
+
 
     private void handleEquippedSlotClick(int equippedSlot) {
         if (attachmentManager.unequipAttachment(player, equippedSlot)) {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 0.8f);
-            populateGUI(); // Refresh GUI
+            populateGUI();
         }
     }
 
@@ -309,33 +299,26 @@ public class AttachmentsGUI implements InventoryHolder {
         ItemStack clickedItem = inventory.getItem(slot);
         if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
 
-        // Parse tier from item name
-        String displayName = clickedItem.getItemMeta().getDisplayName();
-        int tier = parseTierFromName(displayName);
+        int tier = parseTierFromName(clickedItem.getItemMeta().getDisplayName());
         if (tier == -1) return;
 
-        AttachmentManager.AttachmentStorage storage = attachmentManager.getPlayerStorage(player.getUniqueId());
-
         if (isShiftClick && isRightClick) {
-            // Shift + Right click = Merge
             if (attachmentManager.canMerge(player.getUniqueId(), tier)) {
                 attachmentManager.mergeAttachments(player, tier);
-                populateGUI(); // Refresh GUI
+                populateGUI();
             } else {
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 ChatUtil.sendMessage(player, "&cNeed at least " + AttachmentManager.MERGE_COST + " Tier " + tier + " attachments to merge!");
             }
         } else if (!isRightClick) {
-            // Left click = Equip
             if (attachmentManager.equipAttachment(player, tier)) {
                 player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1.0f, 1.2f);
-                populateGUI(); // Refresh GUI
+                populateGUI();
             } else {
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             }
         } else {
-            // Right click = Show options/info
-            showAttachmentOptions(tier, storage.getAttachmentCount(tier));
+            showAttachmentOptions(tier, attachmentManager.getPlayerStorage(player.getUniqueId()).getAttachmentCount(tier));
         }
     }
 
@@ -355,18 +338,19 @@ public class AttachmentsGUI implements InventoryHolder {
 
     private int parseTierFromName(String displayName) {
         try {
-            // Extract tier number from "Tier X Attachment" format
             String cleaned = ChatColor.stripColor(displayName);
-            if (cleaned.contains("Tier ") && cleaned.contains(" Attachment")) {
-                String tierStr = cleaned.substring(cleaned.indexOf("Tier ") + 5);
-                tierStr = tierStr.substring(0, tierStr.indexOf(" "));
-                return Integer.parseInt(tierStr);
+            String[] parts = cleaned.split(" ");
+            for (int i = 0; i < parts.length; i++) {
+                if (parts[i].equalsIgnoreCase("Tier") && i + 1 < parts.length) {
+                    return Integer.parseInt(parts[i + 1]);
+                }
             }
         } catch (Exception e) {
             // Ignore parsing errors
         }
         return -1;
     }
+
 
     private ItemStack createItem(Material material, String name, List<String> lore, boolean enchanted) {
         ItemStack item = new ItemStack(material);
@@ -405,7 +389,6 @@ public class AttachmentsGUI implements InventoryHolder {
         return inventory;
     }
 
-    // Helper method to refresh GUI when external changes occur
     public void refresh() {
         populateGUI();
     }

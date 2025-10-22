@@ -31,44 +31,70 @@ public class MortarGUI implements InventoryHolder {
     private final Inventory inventory;
     private final MortarManager mortarManager;
 
-    // GUI Layout
-    private static final int[] FILLER_SLOTS = {0, 1, 2, 3, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 48, 50, 51, 52, 53};
-    private static final int MORTAR_INFO_SLOT = 4;
-    private static final int UPGRADE_MORTAR_SLOT = 22;
-    private static final int STATS_SLOT = 49;
+    // GUI Layout - Updated slots
+    private static final int MORTAR_INFO_SLOT = 8;          // Moved from 4
+    private static final int UPGRADE_MORTAR_SLOT = 13;      // Moved from 22
+    private static final int BACK_BUTTON_SLOT = 45;
+    private static final int PICKAXE_PREVIEW_SLOT = 49;
+    private static final int STATS_SLOT = 53;
 
-    // Upgrade slots
-    private static final int MULTIPLIER_SLOT = 10;
-    private static final int COOLDOWN_CONDENSER_SLOT = 12;
-    private static final int LIGHTNING_STRIKE_SLOT = 14;
-    private static final int SELECTIVE_FIRE_SLOT = 16;
+    // Upgrade slots - Updated slots
+    private static final int MULTIPLIER_SLOT = 28;          // Moved from 10
+    private static final int COOLDOWN_CONDENSER_SLOT = 30;  // Moved from 12
+    private static final int LIGHTNING_STRIKE_SLOT = 32;    // Moved from 14
+    private static final int SELECTIVE_FIRE_SLOT = 34;      // Moved from 16
 
     public MortarGUI(EnchantCore plugin, Player player) {
         this.plugin = plugin;
         this.player = player;
         this.mortarManager = plugin.getMortarManager();
-        this.inventory = Bukkit.createInventory(this, 54, ColorUtils.translateColors("&6&lMortar Workshop"));
+        this.inventory = Bukkit.createInventory(this, 54, ColorUtils.translateColors("&f\uE5A1\uE0AE"));
 
         populateGUI();
     }
 
     private void populateGUI() {
-        // Fill background
-        fillBackground();
-
         // Add main items
         addMortarInfoItem();
         addUpgradeMortarItem();
         addStatsItem();
+        addBackButton();
+        addPickaxePreview();
 
         // Add upgrade items
         addUpgradeItems();
     }
 
-    private void fillBackground() {
-        ItemStack filler = createItem(Material.GRAY_STAINED_GLASS_PANE, "&7", null, false);
-        for (int slot : FILLER_SLOTS) {
-            inventory.setItem(slot, filler);
+    private void addBackButton() {
+        ItemStack backButton = createItem(Material.BARRIER, "&c&lBACK", List.of("&7Click to return to main menu."), false);
+        inventory.setItem(BACK_BUTTON_SLOT, backButton);
+    }
+
+    private void addPickaxePreview() {
+        ItemStack pickaxe = plugin.getPickaxeManager().findPickaxe(player);
+
+        if (pickaxe != null) {
+            plugin.getPickaxeManager().updatePickaxe(pickaxe, player);
+            ItemStack pickaxeClone = pickaxe.clone();
+            ItemMeta meta = pickaxeClone.getItemMeta();
+            if (meta != null) {
+                List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
+                lore.add("");
+                lore.add(ColorUtils.translateColors("&7This is a preview of your pickaxe."));
+                meta.setLore(lore);
+                pickaxeClone.setItemMeta(meta);
+            }
+            inventory.setItem(PICKAXE_PREVIEW_SLOT, pickaxeClone);
+        } else {
+            ItemStack placeholder = new ItemStack(Material.DIAMOND_PICKAXE);
+            ItemMeta meta = placeholder.getItemMeta();
+            meta.setDisplayName(ColorUtils.translateColors("&cNo EnchantCore Pickaxe Found"));
+            meta.setLore(List.of(
+                    ColorUtils.translateColors("&7You need an EnchantCore pickaxe"),
+                    ColorUtils.translateColors("&7in your inventory to see it here.")
+            ));
+            placeholder.setItemMeta(meta);
+            inventory.setItem(PICKAXE_PREVIEW_SLOT, placeholder);
         }
     }
 
@@ -119,7 +145,7 @@ public class MortarGUI implements InventoryHolder {
             }
         }
 
-        Material material = mortarData.getLevel() == 0 ? Material.BARRIER : Material.TNT;
+        Material material = mortarData.getLevel() == 0 ? Material.BARRIER : Material.BARRIER;
         String name = mortarData.getLevel() == 0 ? "&c&lMortar (Locked)" : "&6&lMortar Level " + mortarData.getLevel();
 
         ItemStack item = createItem(material, name, lore, mortarData.getLevel() > 0);
@@ -217,7 +243,7 @@ public class MortarGUI implements InventoryHolder {
         lore.add("");
         lore.add("&eClick for detailed stats!");
 
-        ItemStack item = createItem(Material.BOOK, "&e&lMortar Statistics", lore, false);
+        ItemStack item = createItem(Material.BARRIER, "&e&lMortar Statistics", lore, false);
         inventory.setItem(STATS_SLOT, item);
     }
 
@@ -248,25 +274,25 @@ public class MortarGUI implements InventoryHolder {
 
         // Add upgrade description
         switch (upgrade) {
-            case MULTIPLIER:
+            case MULTIPLIER -> {
                 lore.add("&7Increases the token/gem multiplier");
                 lore.add("&7when mortar activates.");
                 lore.add("&7+0.2x per level");
-                break;
-            case COOLDOWN_CONDENSER:
+            }
+            case COOLDOWN_CONDENSER -> {
                 lore.add("&7Reduces mortar cooldown by");
                 lore.add("&71-5 seconds per level.");
-                break;
-            case LIGHTNING_STRIKE:
+            }
+            case LIGHTNING_STRIKE -> {
                 lore.add("&7Small chance to activate");
                 lore.add("&7mortar twice in a row!");
                 lore.add("&7Chance increases per level.");
-                break;
-            case SELECTIVE_FIRE:
+            }
+            case SELECTIVE_FIRE -> {
                 lore.add("&7Increases chance to trigger");
                 lore.add("&7high-tier enchantments.");
                 lore.add("&7Better targeting per level.");
-                break;
+            }
         }
 
         lore.add("");
@@ -300,8 +326,6 @@ public class MortarGUI implements InventoryHolder {
     }
 
     public void handleClick(int slot) {
-        UUID playerId = player.getUniqueId();
-
         if (slot == UPGRADE_MORTAR_SLOT) {
             if (mortarManager.upgradeMortar(player)) {
                 player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.2f);
@@ -313,6 +337,8 @@ public class MortarGUI implements InventoryHolder {
             player.closeInventory();
             // Send detailed stats in chat
             sendDetailedStats();
+        } else if (slot == BACK_BUTTON_SLOT) {
+            handleBackButton();
         } else if (slot == MULTIPLIER_SLOT) {
             handleUpgradeClick(MortarManager.MortarUpgrade.MULTIPLIER);
         } else if (slot == COOLDOWN_CONDENSER_SLOT) {
@@ -330,6 +356,33 @@ public class MortarGUI implements InventoryHolder {
             populateGUI(); // Refresh GUI
         } else {
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+        }
+    }
+
+    private void handleBackButton() {
+        try {
+            final PlayerData playerData = plugin.getPlayerDataManager().getPlayerData(player.getUniqueId());
+            if (playerData != null) {
+                ItemStack pickaxe = plugin.getPickaxeManager().findPickaxe(player);
+
+                if (pickaxe != null) {
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+                    plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                        new EnchantGUI(plugin, player, playerData, pickaxe).open();
+                    }, 1L);
+                } else {
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                    ChatUtil.sendMessage(player, "&cCould not find your EnchantCore pickaxe!");
+                    player.closeInventory();
+                }
+            } else {
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                ChatUtil.sendMessage(player, "&cError loading player data!");
+            }
+        } catch (Exception e) {
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            ChatUtil.sendMessage(player, "&cError opening main menu!");
+            e.printStackTrace();
         }
     }
 
@@ -435,6 +488,7 @@ public class MortarGUI implements InventoryHolder {
     }
 
     private String formatTime(long milliseconds) {
+        if (milliseconds < 0) return "0s";
         long seconds = milliseconds / 1000;
         if (seconds < 60) {
             return seconds + "s";

@@ -1,13 +1,13 @@
+// --- ENTIRE CLASS - COPY AND PASTE ---
 package com.strikesenchantcore.managers;
 
 import com.strikesenchantcore.EnchantCore;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Entity;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.io.File;
 import java.io.IOException;
@@ -85,17 +85,13 @@ public class BlackholeManager {
     }
 
     public void removeBlackholeByPlayer(UUID playerUUID) {
-        Iterator<Map.Entry<UUID, BlackholeData>> iterator = activeBlackholes.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<UUID, BlackholeData> entry = iterator.next();
-            if (entry.getValue().getPlayerUUID().equals(playerUUID)) {
-                iterator.remove();
-            }
-        }
+        activeBlackholes.values().removeIf(data -> data.getPlayerUUID().equals(playerUUID));
+        saveBlackholeData();
     }
 
+
     public void cleanupAllBlackholes() {
-        plugin.getLogger().info("Cleaning up " + activeBlackholes.size() + " active blackholes...");
+        plugin.getLogger().info("Cleaning up " + activeBlackholes.size() + " active blackholes (coal spheres)...");
 
         for (BlackholeData data : activeBlackholes.values()) {
             restoreBlocks(data);
@@ -103,7 +99,35 @@ public class BlackholeManager {
 
         activeBlackholes.clear();
         saveBlackholeData();
-        plugin.getLogger().info("All blackholes cleaned up successfully");
+        plugin.getLogger().info("All blackhole spheres cleaned up successfully.");
+    }
+
+    /**
+     * NEW METHOD: This is the failsafe cleanup for orphaned armor stands.
+     * It scans all worlds for armor stands with the specific plugin tag and removes them.
+     */
+    public void cleanupOrphanedArmorStands() {
+        int removedCount = 0;
+        // This key MUST match the one used in BlockBreakListener.java
+        NamespacedKey blackholeKey = new NamespacedKey(plugin, "blackhole_armor_stand");
+
+        plugin.getLogger().info("Starting sweep for orphaned Blackhole armor stands...");
+
+        for (World world : Bukkit.getWorlds()) {
+            for (Entity entity : world.getEntities()) {
+                // Check if it's an armor stand and if it has our specific tag
+                if (entity instanceof org.bukkit.entity.ArmorStand && entity.getPersistentDataContainer().has(blackholeKey, PersistentDataType.BYTE)) {
+                    entity.remove();
+                    removedCount++;
+                }
+            }
+        }
+
+        if (removedCount > 0) {
+            plugin.getLogger().info("Removed " + removedCount + " orphaned Blackhole armor stands.");
+        } else {
+            plugin.getLogger().info("No orphaned Blackhole armor stands found.");
+        }
     }
 
     private void generateSphere(Location center, int radius, Set<Location> blocks) {
@@ -202,7 +226,6 @@ public class BlackholeManager {
                 blackholeConfig.set(path + ".world", center.getWorld().getName());
                 blackholeConfig.set(path + ".x", center.getX());
                 blackholeConfig.set(path + ".y", center.getY());
-                blackholeConfig.set(path + ".z", center.getZ());
                 blackholeConfig.set(path + ".radius", data.getRadius());
                 blackholeConfig.set(path + ".created", data.getCreationTime());
                 blackholeConfig.set(path + ".player_uuid", data.getPlayerUUID().toString());
