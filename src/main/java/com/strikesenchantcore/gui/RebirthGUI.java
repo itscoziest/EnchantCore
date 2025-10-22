@@ -43,7 +43,6 @@ public class RebirthGUI implements InventoryHolder {
     private final PickaxeManager pickaxeManager;
     private final MessageManager messageManager;
 
-    // --- THIS IS THE KEY TO THE FIX ---
     private final Map<Integer, EnchantmentWrapper> slotToEnchantMap = new HashMap<>();
 
     private static final int[] TOKEN_MENU_SLOTS = {0, 1, 2};
@@ -63,9 +62,9 @@ public class RebirthGUI implements InventoryHolder {
         this.inventory = Bukkit.createInventory(this, 54, ChatUtil.color("&f\uE5A1\uE091"));
         populateGUI();
     }
-        private void populateGUI() {
+    private void populateGUI() {
         addMenuButtons();
-        slotToEnchantMap.clear(); // Clear any previous data
+        slotToEnchantMap.clear();
         Map<String, Integer> currentEnchants = pickaxeManager.getAllEnchantLevels(this.pickaxe);
         int pickaxeLevel = PDCUtil.getPickaxeLevel(this.pickaxe);
         int currentSlot = 10;
@@ -77,7 +76,6 @@ public class RebirthGUI implements InventoryHolder {
             int currentLevel = currentEnchants.getOrDefault(enchant.getRawName().toLowerCase(), 0);
             inventory.setItem(currentSlot, enchant.createGuiItem(currentLevel, pickaxeLevel, ConfigManager.CurrencyType.POINTS, null));
 
-            // Create the definitive mapping
             slotToEnchantMap.put(currentSlot, enchant);
 
             currentSlot++;
@@ -88,7 +86,6 @@ public class RebirthGUI implements InventoryHolder {
     public void handleClick(Player player, int slot, ClickType clickType) {
         if (handleMenuButtonClick(player, slot)) return;
 
-        // --- THIS IS THE FIX: Use the map for a perfect lookup ---
         EnchantmentWrapper clickedEnchant = slotToEnchantMap.get(slot);
 
         if (clickedEnchant == null) return;
@@ -134,14 +131,12 @@ public class RebirthGUI implements InventoryHolder {
         playSoundEffect(player, Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.2f);
     }
 
-    // --- NO CHANGES NEEDED TO ANY OTHER METHODS BELOW ---
-
     private void addMenuButtons() {
         for (int slot : TOKEN_MENU_SLOTS) {
             inventory.setItem(slot, createGuiItemHelper(Material.BARRIER, "&c&lToken Enchants", List.of("&7Click to view main enchants"), 0, false));
         }
         for (int slot : GEMS_MENU_SLOTS) {
-            inventory.setItem(slot, createGuiItemHelper(Material.BARRIER, "&c&lGems Enchants", List.of("&7Click to view gems enchants"), 0, false));
+            inventory.setItem(slot, createGuiItemHelper(Material.BARRIER, "&b&lGems Enchants", List.of("&7Click to view gems enchants"), 0, false));
         }
         for (int slot : REBIRTH_MENU_SLOTS) {
             inventory.setItem(slot, createGuiItemHelper(Material.BARRIER, "&5&lRebirth Enchants", List.of("&7You are viewing this menu"), 0, false));
@@ -167,6 +162,7 @@ public class RebirthGUI implements InventoryHolder {
     }
 
     private boolean handleMenuButtonClick(Player player, int slot) {
+        // Navigate to Token/Main menu
         for (int tokenSlot : TOKEN_MENU_SLOTS) {
             if (slot == tokenSlot) {
                 playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
@@ -174,6 +170,7 @@ public class RebirthGUI implements InventoryHolder {
                 return true;
             }
         }
+        // Navigate to Gems menu
         for (int gemsSlot : GEMS_MENU_SLOTS) {
             if (slot == gemsSlot) {
                 playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
@@ -181,22 +178,30 @@ public class RebirthGUI implements InventoryHolder {
                 return true;
             }
         }
-        if ((slot >= 6 && slot <= 8) || slot == 45 || slot == 47 || slot == 51 || slot == 53) {
+
+        // --- THIS IS THE FIX ---
+        if ((slot >= 6 && slot <= 8) || isAdditionalMenuSlot(slot)) {
             playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
-            if (slot == 45) {
-                try {
-                    new PickaxeSkinsGUI(plugin, player, playerData, this.pickaxe).open();
-                } catch (Exception e) {
-                    player.closeInventory();
-                }
-            } else {
-                if (slot == 51) { // Crystals button
-                    new CrystalsGUI(plugin, player).open();
-                } else {
-                    ChatUtil.sendMessage(player, "&c&lUNDER DEVELOPMENT");
-                }
+
+            if (slot == 45) { // Pickaxe Skins
+                new PickaxeSkinsGUI(plugin, player, playerData, this.pickaxe).open();
+            } else if (slot == 47) { // Mortar
+                new MortarGUI(plugin, player).open();
+            } else if (slot == 51) { // Crystals
+                new CrystalsGUI(plugin, player).open();
+            } else if (slot == 53) { // Attachments
+                new AttachmentsGUI(plugin, player).open();
             }
+            // The REBIRTH_MENU_SLOTS (6-8) do nothing because you're already in that menu.
             return true;
+        }
+        return false;
+    }
+
+    // Helper method to check the bottom row of buttons
+    private boolean isAdditionalMenuSlot(int slot) {
+        for (int menuSlot : ADDITIONAL_MENU_SLOTS) {
+            if (slot == menuSlot) return true;
         }
         return false;
     }

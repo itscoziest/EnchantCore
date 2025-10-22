@@ -76,18 +76,19 @@ public class GemsGUI implements InventoryHolder {
 
     private void addMenuButtons() {
         for (int slot : TOKEN_MENU_SLOTS) {
-            inventory.setItem(slot, createGuiItemHelper(Material.BARRIER, "&c&lToken Enchants", List.of("&7Click to view main enchants", "&c&lUNDER DEVELOPMENT"), 0, false));
+            inventory.setItem(slot, createGuiItemHelper(Material.BARRIER, "&c&lToken Enchants", List.of("&7Click to view main enchants"), 0, false));
         }
         for (int slot : GEMS_MENU_SLOTS) {
-            inventory.setItem(slot, createGuiItemHelper(Material.BARRIER, "&c&lGems Enchants", List.of("&7Click to view gems enchants", "&c&lUNDER DEVELOPMENT"), 0, false));
+            inventory.setItem(slot, createGuiItemHelper(Material.BARRIER, "&b&lGems Enchants", List.of("&7You are viewing this menu"), 0, false));
         }
         for (int slot : REBIRTH_MENU_SLOTS) {
-            inventory.setItem(slot, createGuiItemHelper(Material.BARRIER, "&d&lRebirth Enchants", List.of("&7Click to view rebirth enchants", "&c&lUNDER DEVELOPMENT"), 0, false));
+            inventory.setItem(slot, createGuiItemHelper(Material.BARRIER, "&d&lRebirth Enchants", List.of("&7Click to view rebirth enchants"), 0, false));
         }
-        if (inventory.getSize() > 45) inventory.setItem(45, createGuiItemHelper(Material.BARRIER, "&6&lPickaxe Skins", List.of("&7Click to view pickaxe skins", "&c&lUNDER DEVELOPMENT"), 0, false));
-        if (inventory.getSize() > 47) inventory.setItem(47, createGuiItemHelper(Material.BARRIER, "&6&lMortar", List.of("&7Click to view mortar options", "&c&lUNDER DEVELOPMENT"), 0, false));
-        if (inventory.getSize() > 51) inventory.setItem(51, createGuiItemHelper(Material.BARRIER, "&6&lCrystals", List.of("&7Click to view crystals", "&c&lUNDER DEVELOPMENT"), 0, false));
-        if (inventory.getSize() > 53) inventory.setItem(53, createGuiItemHelper(Material.BARRIER, "&6&lAttachments", List.of("&7Click to view attachments", "&c&lUNDER DEVELOPMENT"), 0, false));
+        // --- LORE UPDATED ---
+        if (inventory.getSize() > 45) inventory.setItem(45, createGuiItemHelper(Material.BARRIER, "&6&lPickaxe Skins", List.of("&7Click to view pickaxe skins"), 0, false));
+        if (inventory.getSize() > 47) inventory.setItem(47, createGuiItemHelper(Material.BARRIER, "&6&lMortar", List.of("&7Click to view mortar options"), 0, false));
+        if (inventory.getSize() > 51) inventory.setItem(51, createGuiItemHelper(Material.BARRIER, "&6&lCrystals", List.of("&7Click to view crystals"), 0, false));
+        if (inventory.getSize() > 53) inventory.setItem(53, createGuiItemHelper(Material.BARRIER, "&6&lAttachments", List.of("&7Click to view attachments"), 0, false));
     }
 
     private void addInfoItem() {
@@ -173,31 +174,26 @@ public class GemsGUI implements InventoryHolder {
             }
         }
 
-        // Handles all other buttons (Gems, Skins, etc.)
+        // --- THIS IS THE FIX ---
+        // Handles all other buttons (Gems, Skins, Mortar, Attachments, etc.)
         if ((slot >= 3 && slot <= 5) || isAdditionalMenuSlot(slot)) {
             playSoundEffect(player, Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
-            if (slot == 45) { // Pickaxe Skins logic
-                try {
-                    // Assuming you have a PickaxeSkinsGUIListener with this static method
-                    PickaxeSkinsGUIListener.setPickaxeForSkinsGui(player.getUniqueId(), this.pickaxe);
-                    new PickaxeSkinsGUI(plugin, player, playerData, this.pickaxe).open();
-                } catch (Exception e) {
-                    logger.log(Level.SEVERE, "Error opening PickaxeSkinsGUI from GemsGUI", e);
-                    player.closeInventory();
-                }
-            } else {
-                if (slot == 51) { // Crystals button
-                    new CrystalsGUI(plugin, player).open();
-                } else {
-                    ChatUtil.sendMessage(player, "&c&lUNDER DEVELOPMENT");
-                }
+
+            if (slot == 45) { // Pickaxe Skins
+                new PickaxeSkinsGUI(plugin, player, playerData, this.pickaxe).open();
+            } else if (slot == 47) { // Mortar
+                new MortarGUI(plugin, player).open();
+            } else if (slot == 51) { // Crystals
+                new CrystalsGUI(plugin, player).open();
+            } else if (slot == 53) { // Attachments
+                new AttachmentsGUI(plugin, player).open();
             }
+            // The GEMS_MENU_SLOTS (3-5) do nothing because you're already in that menu.
             return true;
         }
         return false;
     }
 
-    // You may also need to add this small helper method to GemsGUI.java
     private boolean isAdditionalMenuSlot(int slot) {
         for (int menuSlot : ADDITIONAL_MENU_SLOTS) {
             if (slot == menuSlot) return true;
